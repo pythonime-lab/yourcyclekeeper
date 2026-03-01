@@ -1637,7 +1637,8 @@
               margin-bottom: 0.625rem;
             "
           >
-            💾 <strong>Storage used:</strong> <span id="storage-usage">Calculating...</span>
+            💾 <strong>Storage used:</strong>
+            <span id="storage-usage">Calculating...</span>
           </div>
           <button class="danger-btn" onclick="confirmClear()">
             Erase All Data
@@ -2670,7 +2671,7 @@
         // Load notification preference
         const notifDays = state.notificationDaysBefore || 0;
         document.getElementById(`notif-${notifDays}`).checked = true;
-        
+
         // Calculate and display storage usage
         calculateStorageUsage();
       }
