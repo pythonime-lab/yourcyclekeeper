@@ -97,9 +97,11 @@
       let deferredPrompt = null;
 
       // Check if app is already installed and hide button
-      if (localStorage.getItem("luna_app_installed") === "true" ||
-          window.matchMedia("(display-mode: standalone)").matches ||
-          window.navigator.standalone === true) {
+      if (
+        localStorage.getItem("luna_app_installed") === "true" ||
+        window.matchMedia("(display-mode: standalone)").matches ||
+        window.navigator.standalone === true
+      ) {
         // Running as installed app or previously marked as installed
         window.addEventListener("DOMContentLoaded", () => {
           const btn = document.getElementById("install-btn");
