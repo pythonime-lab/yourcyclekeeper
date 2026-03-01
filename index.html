@@ -1623,11 +1623,22 @@
             onclick="importData()"
             style="
               background: linear-gradient(135deg, #34d399, #0d9488);
-              margin-bottom: 0;
+              margin-bottom: 0.625rem;
             "
           >
             Import Encrypted Backup
           </button>
+          <div
+            class="info-box"
+            style="
+              border-color: rgba(139, 92, 246, 0.35);
+              background: rgba(139, 92, 246, 0.08);
+              color: #c4b5fd;
+              margin-bottom: 0.625rem;
+            "
+          >
+            💾 <strong>Storage used:</strong> <span id="storage-usage">Calculating...</span>
+          </div>
           <button class="danger-btn" onclick="confirmClear()">
             Erase All Data
           </button>
@@ -2659,6 +2670,9 @@
         // Load notification preference
         const notifDays = state.notificationDaysBefore || 0;
         document.getElementById(`notif-${notifDays}`).checked = true;
+        
+        // Calculate and display storage usage
+        calculateStorageUsage();
       }
 
       async function updateNotificationPref(days) {
@@ -3107,6 +3121,21 @@
           }
         });
         input.click();
+      }
+
+      function calculateStorageUsage() {
+        let totalSize = 0;
+        for (let key in localStorage) {
+          if (localStorage.hasOwnProperty(key)) {
+            totalSize += localStorage[key].length + key.length;
+          }
+        }
+        // Convert to KB
+        const sizeKB = (totalSize / 1024).toFixed(2);
+        const usageSpan = document.getElementById("storage-usage");
+        if (usageSpan) {
+          usageSpan.textContent = `${sizeKB} KB`;
+        }
       }
 
       function confirmClear() {
