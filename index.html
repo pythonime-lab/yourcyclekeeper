@@ -2007,6 +2007,7 @@
         updateStatusCard();
         renderCalendar();
         checkForUpcomingPeriod();
+        checkAndShowScheduledNotification();
         switchTab("calendar");
       }
 
@@ -2745,7 +2746,7 @@
           requireInteraction: false,
         };
 
-        console.log("Showing notification with options:", options);
+        console.log("Showing test notification with options:", options);
 
         // Try Service Worker first (only on http/https)
         if (
@@ -2757,9 +2758,9 @@
             const registration = await navigator.serviceWorker.ready;
             console.log("Service Worker ready:", registration);
             if (registration) {
-              console.log("Showing notification via Service Worker...");
+              console.log("Showing test notification via Service Worker...");
               await registration.showNotification(title, options);
-              console.log("Notification shown successfully via Service Worker");
+              console.log("Test notification shown successfully via Service Worker");
               return;
             }
           } catch (err) {
@@ -2838,37 +2839,9 @@
           }
         }
 
-        // Schedule with Service Worker
-        if (
-          "serviceWorker" in navigator &&
-          Notification.permission === "granted"
-        ) {
-          try {
-            const registration = await navigator.serviceWorker.ready;
-
-            // Store notification data for Service Worker
-            localStorage.setItem(
-              "luna_notify_data",
-              JSON.stringify({
-                date: notifyDateStr,
-                daysBefore: state.notificationDaysBefore,
-                cycleLength: state.cycleLength,
-              })
-            );
-
-            // Tell Service Worker to schedule the notification
-            if (registration.active) {
-              registration.active.postMessage({
-                type: "SCHEDULE_NOTIFICATION",
-                data: {
-                  date: notifyDateStr,
-                  daysBefore: state.notificationDaysBefore,
-                },
-              });
-            }
-          } catch (err) {
-            console.warn("Failed to schedule notification:", err);
-          }
+        // If permission granted, show notifications are enabled
+        if (Notification.permission === "granted") {
+          console.log("Notifications enabled. Next notification scheduled for:", notifyDateStr);
         }
       }
 
@@ -2919,6 +2892,41 @@
         // If date changed, reschedule
         if (storedDate !== newDateStr) {
           scheduleNotification();
+        }
+      }
+
+      // Check if it's time to show a period notification when app loads
+      async function checkAndShowScheduledNotification() {
+        if ("Notification" in window && Notification.permission === "granted") {
+          const notifyDate = localStorage.getItem("luna_notify_date");
+          if (notifyDate) {
+            const scheduled = new Date(notifyDate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // If today is the notification date and we haven't shown it yet
+            if (scheduled.toDateString() === today.toDateString()) {
+              const lastShown = localStorage.getItem("luna_notify_shown_date");
+              if (lastShown !== today.toDateString()) {
+                const days = state.notificationDaysBefore || 2;
+                if ("serviceWorker" in navigator) {
+                  try {
+                    const registration = await navigator.serviceWorker.ready;
+                    await registration.showNotification("Period Coming Soon", {
+                      body: `Your period is expected in ${days} day${days > 1 ? "s" : ""}.`,
+                      icon: "/luna-cycle/icons/icon-192.png",
+                      badge: "/luna-cycle/icons/icon-192.png",
+                      tag: "luna-period-notification",
+                      requireInteraction: true,
+                    });
+                    localStorage.setItem("luna_notify_shown_date", today.toDateString());
+                  } catch (err) {
+                    console.warn("Failed to show notification:", err);
+                  }
+                }
+              }
+            }
+          }
         }
       }
 
