@@ -92,6 +92,26 @@
       }
     </script>
 
+    <!-- PWA Install Prompt Listener - Must be early to catch the event -->
+    <script>
+      let deferredPrompt = null;
+
+      window.addEventListener("beforeinstallprompt", (e) => {
+        console.log(
+          "✅ beforeinstallprompt event fired - PWA can be installed"
+        );
+        e.preventDefault();
+        deferredPrompt = e;
+      });
+
+      window.addEventListener("appinstalled", () => {
+        console.log("✅ App installed successfully");
+        deferredPrompt = null;
+        const btn = document.getElementById("install-btn");
+        if (btn) btn.style.display = "none";
+      });
+    </script>
+
     <style>
       @font-face {
         font-family: "LunaDisplay";
@@ -2654,27 +2674,6 @@
           }
         }
       }
-
-      let deferredPrompt = null;
-
-      // Listen for beforeinstallprompt event (PWA install)
-      window.addEventListener("beforeinstallprompt", (e) => {
-        console.log("beforeinstallprompt event fired - PWA can be installed");
-        e.preventDefault();
-        deferredPrompt = e;
-        console.log("Install prompt captured and ready");
-      });
-
-      // Hide install button after successful install
-      window.addEventListener("appinstalled", () => {
-        console.log("App installed successfully");
-        deferredPrompt = null;
-        const btn = document.getElementById("install-btn");
-        if (btn) {
-          btn.style.display = "none";
-          console.log("Install button hidden after installation");
-        }
-      });
 
       function installApp() {
         console.log(
