@@ -1277,6 +1277,23 @@
         </button>
       </div>
 
+      <!-- In-app Reminder Banner -->
+      <div
+        id="reminder-banner"
+        style="
+          display: none;
+          background: linear-gradient(135deg, var(--amber), #f59e0b);
+          padding: 0.875rem 1.25rem;
+          border-radius: 0.75rem;
+          margin: 0 1.25rem 1rem;
+          color: white;
+          font-weight: 600;
+          text-align: center;
+        "
+      >
+        ⏰ <span id="reminder-text">Your period is expected soon</span>
+      </div>
+
       <div class="status-card">
         <div class="status-phase" id="status-phase">Current Phase</div>
         <div class="status-title" id="status-title">—</div>
@@ -1482,110 +1499,6 @@
           />
           <button class="apply-btn" onclick="applySettings()">
             Update Predictions
-          </button>
-        </div>
-        <div class="settings-section">
-          <h3>Notifications</h3>
-          <div class="field-label">Notify me before period starts</div>
-          <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem">
-            <label
-              style="
-                flex: 1;
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                cursor: pointer;
-              "
-            >
-              <input
-                type="radio"
-                name="notif-days"
-                value="0"
-                id="notif-0"
-                onchange="updateNotificationPref(0)"
-                style="cursor: pointer"
-              />
-              <span>Off</span>
-            </label>
-            <label
-              style="
-                flex: 1;
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                cursor: pointer;
-              "
-            >
-              <input
-                type="radio"
-                name="notif-days"
-                value="1"
-                id="notif-1"
-                onchange="updateNotificationPref(1)"
-                style="cursor: pointer"
-              />
-              <span>1 day</span>
-            </label>
-            <label
-              style="
-                flex: 1;
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                cursor: pointer;
-              "
-            >
-              <input
-                type="radio"
-                name="notif-days"
-                value="2"
-                id="notif-2"
-                onchange="updateNotificationPref(2)"
-                style="cursor: pointer"
-              />
-              <span>2 days</span>
-            </label>
-            <label
-              style="
-                flex: 1;
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                cursor: pointer;
-              "
-            >
-              <input
-                type="radio"
-                name="notif-days"
-                value="3"
-                id="notif-3"
-                onchange="updateNotificationPref(3)"
-                style="cursor: pointer"
-              />
-              <span>3 days</span>
-            </label>
-          </div>
-          <div
-            class="info-box"
-            style="
-              font-size: 0.75rem;
-              margin-bottom: 0.75rem;
-              color: var(--text-muted);
-            "
-          >
-            💡 Notifications use your device's settings. You control when and
-            how you're reminded.
-          </div>
-          <button
-            class="apply-btn"
-            onclick="testNotification()"
-            style="
-              background: linear-gradient(135deg, var(--amber), #f59e0b);
-              font-size: 0.8125rem;
-              padding: 0.5rem 1rem;
-            "
-          >
-            Test Notification
           </button>
         </div>
         <div class="settings-section">
@@ -2044,8 +1957,6 @@
         viewMonth = new Date();
         updateStatusCard();
         renderCalendar();
-        checkForUpcomingPeriod();
-        checkAndShowScheduledNotification();
         switchTab("calendar");
       }
 
@@ -2339,6 +2250,22 @@
         );
         safeText("cycle-len-disp", info.cl);
         updateCycleBar(info);
+        updateReminderBanner(info);
+      }
+
+      function updateReminderBanner(info) {
+        const banner = document.getElementById("reminder-banner");
+        const text = document.getElementById("reminder-text");
+        if (!banner || !text || !info) return;
+
+        // Show banner if period is coming within 3 days
+        if (info.daysUntilNext > 0 && info.daysUntilNext <= 3) {
+          const dayText = info.daysUntilNext === 1 ? "day" : "days";
+          text.textContent = `Your period is expected in ${info.daysUntilNext} ${dayText}`;
+          banner.style.display = "block";
+        } else {
+          banner.style.display = "none";
+        }
       }
 
       function getPhaseMessage(info) {
@@ -2668,40 +2595,8 @@
         document.getElementById("s-cycle-len").value = state.cycleLength;
         document.getElementById("s-period-dur").value = state.periodDuration;
 
-        // Load notification preference
-        const notifDays = state.notificationDaysBefore || 0;
-        document.getElementById(`notif-${notifDays}`).checked = true;
-
         // Calculate and display storage usage
         calculateStorageUsage();
-      }
-
-      async function updateNotificationPref(days) {
-        state.notificationDaysBefore = days;
-        await save();
-
-        if (days > 0) {
-          if (
-            "Notification" in window &&
-            Notification.permission === "default"
-          ) {
-            const permission = await Notification.requestPermission();
-            if (permission === "granted") {
-              scheduleNotification();
-              showModal({
-                icon: "✅",
-                title: "Notifications Enabled",
-                msg: `You'll be notified ${days} day${
-                  days > 1 ? "s" : ""
-                } before your period.`,
-                cancelText: "",
-                confirmText: "OK",
-              });
-            }
-          } else {
-            scheduleNotification();
-          }
-        }
       }
 
       function installApp() {
@@ -2747,267 +2642,6 @@
               cancelText: "",
               confirmText: "OK",
             });
-          }
-        }
-      }
-      async function testNotification() {
-        console.log("testNotification() called");
-
-        if (!("Notification" in window)) {
-          showModal({
-            icon: "❌",
-            title: "Not Supported",
-            msg: "Notifications are not supported in this browser.",
-            cancelText: "",
-            confirmText: "OK",
-          });
-          return;
-        }
-
-        if (Notification.permission === "denied") {
-          showModal({
-            icon: "⚠️",
-            title: "Permission Denied",
-            msg: "Notifications are blocked. Please enable them in your browser settings.",
-            cancelText: "",
-            confirmText: "OK",
-          });
-          return;
-        }
-
-        if (Notification.permission === "default") {
-          const permission = await Notification.requestPermission();
-          if (permission !== "granted") {
-            showModal({
-              icon: "⚠️",
-              title: "Permission Denied",
-              msg: "Please allow notifications to test them.",
-              cancelText: "",
-              confirmText: "OK",
-            });
-            return;
-          }
-        }
-
-        const days = state.notificationDaysBefore || 2;
-        const notifBody = `Your period is expected in ${days} day${
-          days > 1 ? "s" : ""
-        }.`;
-
-        try {
-          // Try direct API first (simpler, works on web)
-          try {
-            new Notification("Period Coming Soon", { body: notifBody });
-            console.log("Test notification shown via direct API");
-            return;
-          } catch (err) {
-            console.warn(
-              "Direct API failed (expected on mobile):",
-              err.message
-            );
-          }
-
-          // Fallback: Use Service Worker (required on mobile PWAs)
-          if ("serviceWorker" in navigator) {
-            try {
-              const registration = await navigator.serviceWorker.ready;
-              await registration.showNotification("Period Coming Soon", {
-                body: notifBody,
-              });
-              console.log("Test notification shown via Service Worker");
-              return;
-            } catch (swErr) {
-              console.error(
-                "Service Worker notification failed:",
-                swErr.message
-              );
-              showModal({
-                icon: "⚠️",
-                title: "Notification Failed",
-                msg: "Could not display notification: " + swErr.message,
-                cancelText: "",
-                confirmText: "OK",
-              });
-            }
-          } else {
-            showModal({
-              icon: "⚠️",
-              title: "Notification Not Available",
-              msg: "Service Worker not available on this device",
-              cancelText: "",
-              confirmText: "OK",
-            });
-          }
-        } catch (err) {
-          console.error("Unexpected error:", err);
-        }
-      }
-
-      async function scheduleNotification() {
-        if (!state.lastPeriodStart || state.notificationDaysBefore === 0)
-          return;
-
-        if (
-          !state.cycleLength ||
-          state.cycleLength < 20 ||
-          state.cycleLength > 45
-        ) {
-          return;
-        }
-
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        const lastStart = new Date(state.lastPeriodStart);
-        if (isNaN(lastStart.getTime())) {
-          return;
-        }
-
-        let nextStart = new Date(lastStart);
-
-        while (nextStart <= today) {
-          nextStart.setDate(nextStart.getDate() + state.cycleLength);
-        }
-
-        const notifyDate = new Date(nextStart);
-        notifyDate.setDate(notifyDate.getDate() - state.notificationDaysBefore);
-        notifyDate.setHours(9, 0, 0, 0);
-
-        if (isNaN(notifyDate.getTime())) {
-          return;
-        }
-        const notifyDateStr = notifyDate.toISOString();
-        localStorage.setItem("luna_notify_date", notifyDateStr);
-
-        // Request notification permission if needed
-        if ("Notification" in window && Notification.permission === "default") {
-          try {
-            await Notification.requestPermission();
-          } catch (err) {
-            console.warn("Notification permission request failed:", err);
-          }
-        }
-      }
-
-      function checkForUpcomingPeriod() {
-        // Only check if settings changed - recalculate notification date
-        const storedDate = localStorage.getItem("luna_notify_date");
-        if (!storedDate) {
-          scheduleNotification();
-          return;
-        }
-
-        // Recalculate expected date based on current settings
-        if (!state.lastPeriodStart || state.notificationDaysBefore === 0)
-          return;
-
-        if (
-          !state.cycleLength ||
-          state.cycleLength < 20 ||
-          state.cycleLength > 45
-        ) {
-          return;
-        }
-
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        const lastStart = new Date(state.lastPeriodStart);
-        if (isNaN(lastStart.getTime())) {
-          return;
-        }
-
-        let nextStart = new Date(lastStart);
-
-        while (nextStart <= today) {
-          nextStart.setDate(nextStart.getDate() + state.cycleLength);
-        }
-
-        const notifyDate = new Date(nextStart);
-        notifyDate.setDate(notifyDate.getDate() - state.notificationDaysBefore);
-        notifyDate.setHours(9, 0, 0, 0);
-
-        if (isNaN(notifyDate.getTime())) {
-          return;
-        }
-
-        const newDateStr = notifyDate.toISOString();
-
-        // If date changed, reschedule
-        if (storedDate !== newDateStr) {
-          scheduleNotification();
-        }
-      }
-
-      // Check if it's time to show a period notification when app loads
-      async function checkAndShowScheduledNotification() {
-        if ("Notification" in window && Notification.permission === "granted") {
-          const notifyDate = localStorage.getItem("luna_notify_date");
-          if (notifyDate) {
-            const scheduled = new Date(notifyDate);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            // If today is the notification date and we haven't shown it yet
-            if (scheduled.toDateString() === today.toDateString()) {
-              const lastShown = localStorage.getItem("luna_notify_shown_date");
-              if (lastShown !== today.toDateString()) {
-                const days = state.notificationDaysBefore || 2;
-                const days_text = days > 1 ? "days" : "day";
-                const notifBody = `Your period is expected in ${days} ${days_text}.`;
-
-                try {
-                  // Try direct API first (simpler, works on web)
-                  try {
-                    new Notification("Period Coming Soon", { body: notifBody });
-                    localStorage.setItem(
-                      "luna_notify_shown_date",
-                      today.toDateString()
-                    );
-                    console.log("Scheduled notification shown via direct API");
-                    return;
-                  } catch (err) {
-                    console.warn(
-                      "Direct API failed (expected on mobile):",
-                      err.message
-                    );
-                  }
-
-                  // Fallback: Use Service Worker (required on mobile PWAs)
-                  if ("serviceWorker" in navigator) {
-                    try {
-                      console.log(
-                        "Attempting Service Worker for scheduled notification..."
-                      );
-                      const registration = await navigator.serviceWorker.ready;
-                      await registration.showNotification(
-                        "Period Coming Soon",
-                        { body: notifBody }
-                      );
-                      localStorage.setItem(
-                        "luna_notify_shown_date",
-                        today.toDateString()
-                      );
-                      console.log(
-                        "Scheduled notification shown via Service Worker"
-                      );
-                      return;
-                    } catch (swErr) {
-                      console.error(
-                        "Service Worker notification failed:",
-                        swErr.message
-                      );
-                    }
-                  } else {
-                    console.warn(
-                      "Service Worker not available for scheduled notification"
-                    );
-                  }
-                } catch (err) {
-                  console.warn("Failed to show scheduled notification:", err);
-                }
-              }
-            }
           }
         }
       }
