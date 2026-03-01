@@ -383,19 +383,21 @@
       }
       .onboard-form input {
         width: 100%;
-        background: var(--card);
-        border: 0.0625rem solid var(--border);
-        border-radius: 0.875rem;
+        background: rgba(255, 255, 255, 0.1);
+        border: 0.0625rem solid rgba(255, 255, 255, 0.2);
+        border-radius: 0.5rem;
         padding: 0.875rem 1rem;
-        color: var(--text);
+        color: white;
         font-family: inherit;
         font-size: 1rem;
         outline: none;
         margin-bottom: 1rem;
-        -webkit-appearance: none;
       }
       .onboard-form input:focus {
         border-color: rgba(255, 61, 107, 0.6);
+      }
+      .onboard-form input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
       }
 
       .pin-setup-title {
@@ -978,6 +980,7 @@
         border-radius: 1.25rem;
         padding: 1.125rem;
         margin-bottom: 0.75rem;
+        overflow: visible;
       }
       .insight-card h3 {
         font-family: Georgia, serif;
@@ -1060,19 +1063,21 @@
       }
       .field-input {
         width: 100%;
-        background: rgba(255, 255, 255, 0.06);
-        border: 0.0625rem solid var(--border);
-        border-radius: 0.75rem;
+        background: rgba(255, 255, 255, 0.1);
+        border: 0.0625rem solid rgba(255, 255, 255, 0.2);
+        border-radius: 0.5rem;
         padding: 0.75rem 0.875rem;
-        color: var(--text);
+        color: white;
         font-family: inherit;
         font-size: 0.9375rem;
         outline: none;
         margin-bottom: 0.875rem;
-        -webkit-appearance: none;
       }
       .field-input:focus {
         border-color: rgba(255, 61, 107, 0.5);
+      }
+      .field-input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
       }
       .apply-btn {
         width: 100%;
@@ -1906,7 +1911,6 @@
         periodDuration: 5,
         logs: {},
         cycleHistory: [],
-        notificationDaysBefore: 0, // 0, 1, 2, or 3 days
       };
 
       let sessionPin = null; // PIN held only in JS memory (never persisted)
@@ -2917,13 +2921,6 @@
         renderPainChart();
       }
 
-      let painViewMode = "month";
-
-      function switchPainView(mode) {
-        // Deprecated - keeping for backward compatibility
-        updatePainChart();
-      }
-
       function initializePainChartControls() {
         const monthSelect = document.getElementById("pain-view-month");
         const yearSelect = document.getElementById("pain-view-year");
@@ -3032,8 +3029,8 @@
           const x = padding.left + i * barWidth + barWidth / 2;
           const baseY = padding.top + chartHeight;
 
-          // Draw period background
-          if (point.isPeriod) {
+          // Draw period background (only in month view, not year view)
+          if (point.isPeriod && !isYearView) {
             ctx.fillStyle = "rgba(255, 61, 107, 0.15)";
             ctx.fillRect(
               padding.left + i * barWidth,
@@ -3043,8 +3040,8 @@
             );
           }
 
-          // Draw ovulation marker
-          if (point.isOvulation) {
+          // Draw ovulation marker (only in month view, not year view)
+          if (point.isOvulation && !isYearView) {
             ctx.fillStyle = "rgba(255, 215, 0, 0.3)";
             ctx.fillRect(
               padding.left + i * barWidth,
@@ -3308,14 +3305,6 @@
         noteEl.value = (log.note || "").slice(0, 500);
         updateNoteCount();
         panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      }
-
-      function toggleLog(key) {
-        const allowed = ["flow"];
-        if (!allowed.includes(key)) return;
-        const el = document.getElementById("log-" + key);
-        if (!el) return;
-        el.classList.toggle("active-flow");
       }
 
       async function saveLog() {
