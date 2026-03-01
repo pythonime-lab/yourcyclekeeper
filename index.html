@@ -2912,10 +2912,15 @@
                         today.toDateString()
                       );
                     } catch (swErr) {
-                      console.error("Service Worker notification failed:", swErr);
+                      console.error(
+                        "Service Worker notification failed:",
+                        swErr
+                      );
                     }
                   } else {
-                    console.warn("Service Worker not available for scheduled notification");
+                    console.warn(
+                      "Service Worker not available for scheduled notification"
+                    );
                   }
                 } catch (err) {
                   console.warn("Failed to show notification:", err);
