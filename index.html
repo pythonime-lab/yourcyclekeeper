@@ -2723,16 +2723,13 @@
         }
 
         const days = state.notificationDaysBefore || 2;
-        const title = "Period Coming Soon";
-        const options = {
-          body: `Your period is expected in ${days} day${days > 1 ? "s" : ""}.`,
-          tag: "luna-test-notification",
-        };
+        const days_text = days > 1 ? "days" : "day";
+        const notifBody = `Your period is expected in ${days} ${days_text}.`;
 
         try {
           // Try direct API first (simpler and works on web)
           try {
-            new Notification(title, options);
+            new Notification("Period Coming Soon", { body: notifBody });
             console.log("Notification shown via direct API");
             return;
           } catch (err) {
@@ -2746,27 +2743,33 @@
           if ("serviceWorker" in navigator) {
             try {
               console.log("Attempting Service Worker notification...");
-              // Add timeout to avoid hanging
-              const swReady = Promise.race([
-                navigator.serviceWorker.ready,
-                new Promise((_, reject) =>
-                  setTimeout(() => reject(new Error("SW timeout")), 3000)
-                ),
-              ]);
-              const registration = await swReady;
-              console.log("SW ready, showing notification");
-              await registration.showNotification(title, options);
-              console.log("Notification shown via Service Worker");
+              const registration = await navigator.serviceWorker.ready;
+              console.log("SW active:", registration.active);
+              if (registration.active) {
+                await registration.showNotification("Period Coming Soon", {
+                  body: notifBody,
+                });
+                console.log("Notification shown via Service Worker");
+              } else {
+                console.warn("Service Worker not active");
+                showModal({
+                  icon: "⚠️",
+                  title: "Notification Not Ready",
+                  msg: "Service Worker is not active. Please try again.",
+                  cancelText: "",
+                  confirmText: "OK",
+                });
+              }
             } catch (swErr) {
               console.error(
-                "Service Worker notification failed:",
-                swErr.message
+                "Service Worker notification error:",
+                swErr.message,
+                swErr
               );
-              // Show error modal only if both methods failed
               showModal({
                 icon: "⚠️",
-                title: "Notification Failed",
-                msg: "Could not display notification on this device.",
+                title: "Notification Error",
+                msg: swErr.message,
                 cancelText: "",
                 confirmText: "OK",
               });
@@ -2775,17 +2778,23 @@
             console.warn("Service Worker not available");
             showModal({
               icon: "⚠️",
-              title: "Notification Not Available",
-              msg: "Service Worker not supported on this browser.",
+              title: "Not Supported",
+              msg: "Service Worker not available on this browser.",
               cancelText: "",
               confirmText: "OK",
             });
           }
         } catch (err) {
-          console.error("Notification system failed:", err);
+          console.error("Notification system error:", err);
           showModal({
             icon: "⚠️",
-            title: "Notification Failed",
+            title: "Error",
+            msg: err.message,
+            cancelText: "",
+            confirmText: "OK",
+          });
+        }
+      }            title: "Notification Failed",
             msg: "Could not display notification: " + err.message,
             cancelText: "",
             confirmText: "OK",
@@ -2903,21 +2912,18 @@
               const lastShown = localStorage.getItem("luna_notify_shown_date");
               if (lastShown !== today.toDateString()) {
                 const days = state.notificationDaysBefore || 2;
-                const notifOptions = {
-                  body: `Your period is expected in ${days} day${
-                    days > 1 ? "s" : ""
-                  }.`,
-                  tag: "luna-period-notification",
-                };
+                const days_text = days > 1 ? "days" : "day";
+                const notifBody = `Your period is expected in ${days} ${days_text}.`;
 
                 try {
                   // Try direct API first (simpler and works on web)
                   try {
-                    new Notification("Period Coming Soon", notifOptions);
+                    new Notification("Period Coming Soon", { body: notifBody });
                     localStorage.setItem(
                       "luna_notify_shown_date",
                       today.toDateString()
                     );
+                    console.log("Scheduled notification shown via direct API");
                     return;
                   } catch (err) {
                     console.warn(
@@ -2932,32 +2938,26 @@
                       console.log(
                         "Attempting Service Worker for scheduled notification..."
                       );
-                      // Add timeout to avoid hanging
-                      const swReady = Promise.race([
-                        navigator.serviceWorker.ready,
-                        new Promise((_, reject) =>
-                          setTimeout(
-                            () => reject(new Error("SW timeout")),
-                            3000
-                          )
-                        ),
-                      ]);
-                      const registration = await swReady;
-                      console.log("SW ready, showing scheduled notification");
-                      await registration.showNotification(
-                        "Period Coming Soon",
-                        notifOptions
-                      );
-                      localStorage.setItem(
-                        "luna_notify_shown_date",
-                        today.toDateString()
-                      );
-                      console.log(
-                        "Scheduled notification shown via Service Worker"
-                      );
+                      const registration = await navigator.serviceWorker.ready;
+                      console.log("SW active:", registration.active);
+                      if (registration.active) {
+                        await registration.showNotification(
+                          "Period Coming Soon",
+                          { body: notifBody }
+                        );
+                        localStorage.setItem(
+                          "luna_notify_shown_date",
+                          today.toDateString()
+                        );
+                        console.log(
+                          "Scheduled notification shown via Service Worker"
+                        );
+                      } else {
+                        console.warn("Service Worker not active");
+                      }
                     } catch (swErr) {
                       console.error(
-                        "Service Worker notification failed:",
+                        "Service Worker scheduled notification error:",
                         swErr.message
                       );
                     }
