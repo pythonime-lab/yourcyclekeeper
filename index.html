@@ -2728,7 +2728,19 @@
         }.`;
 
         try {
-          // Use Service Worker if available (works on mobile and web)
+          // Try direct API first (simpler, works on web)
+          try {
+            new Notification("Period Coming Soon", { body: notifBody });
+            console.log("Test notification shown via direct API");
+            return;
+          } catch (err) {
+            console.warn(
+              "Direct API failed (expected on mobile):",
+              err.message
+            );
+          }
+
+          // Fallback: Use Service Worker (required on mobile PWAs)
           if ("serviceWorker" in navigator) {
             try {
               const registration = await navigator.serviceWorker.ready;
@@ -2738,23 +2750,23 @@
               console.log("Test notification shown via Service Worker");
               return;
             } catch (swErr) {
-              console.warn(
-                "Service Worker failed, trying direct API:",
+              console.error(
+                "Service Worker notification failed:",
                 swErr.message
               );
+              showModal({
+                icon: "⚠️",
+                title: "Notification Failed",
+                msg: "Could not display notification: " + swErr.message,
+                cancelText: "",
+                confirmText: "OK",
+              });
             }
-          }
-
-          // Fallback: Try direct API (works on web)
-          try {
-            new Notification("Period Coming Soon", { body: notifBody });
-            console.log("Test notification shown via direct API");
-          } catch (err) {
-            console.error("All notification methods failed:", err.message);
+          } else {
             showModal({
               icon: "⚠️",
-              title: "Notification Failed",
-              msg: "Could not display notification: " + err.message,
+              title: "Notification Not Available",
+              msg: "Service Worker not available on this device",
               cancelText: "",
               confirmText: "OK",
             });
@@ -2878,7 +2890,23 @@
                 const notifBody = `Your period is expected in ${days} ${days_text}.`;
 
                 try {
-                  // Use Service Worker if available (works on mobile and web)
+                  // Try direct API first (simpler, works on web)
+                  try {
+                    new Notification("Period Coming Soon", { body: notifBody });
+                    localStorage.setItem(
+                      "luna_notify_shown_date",
+                      today.toDateString()
+                    );
+                    console.log("Scheduled notification shown via direct API");
+                    return;
+                  } catch (err) {
+                    console.warn(
+                      "Direct API failed (expected on mobile):",
+                      err.message
+                    );
+                  }
+
+                  // Fallback: Use Service Worker (required on mobile PWAs)
                   if ("serviceWorker" in navigator) {
                     try {
                       console.log(
@@ -2898,25 +2926,14 @@
                       );
                       return;
                     } catch (swErr) {
-                      console.warn(
-                        "Service Worker failed, trying direct API:",
+                      console.error(
+                        "Service Worker notification failed:",
                         swErr.message
                       );
                     }
-                  }
-
-                  // Fallback: Try direct API (works on web)
-                  try {
-                    new Notification("Period Coming Soon", { body: notifBody });
-                    localStorage.setItem(
-                      "luna_notify_shown_date",
-                      today.toDateString()
-                    );
-                    console.log("Scheduled notification shown via direct API");
-                  } catch (err) {
+                  } else {
                     console.warn(
-                      "Could not show scheduled notification:",
-                      err.message
+                      "Service Worker not available for scheduled notification"
                     );
                   }
                 } catch (err) {
