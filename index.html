@@ -2749,14 +2749,19 @@
               // Add timeout to avoid hanging
               const swReady = Promise.race([
                 navigator.serviceWorker.ready,
-                new Promise((_, reject) => setTimeout(() => reject(new Error("SW timeout")), 3000))
+                new Promise((_, reject) =>
+                  setTimeout(() => reject(new Error("SW timeout")), 3000)
+                ),
               ]);
               const registration = await swReady;
               console.log("SW ready, showing notification");
               await registration.showNotification(title, options);
               console.log("Notification shown via Service Worker");
             } catch (swErr) {
-              console.error("Service Worker notification failed:", swErr.message);
+              console.error(
+                "Service Worker notification failed:",
+                swErr.message
+              );
               // Show error modal only if both methods failed
               showModal({
                 icon: "⚠️",
@@ -2924,11 +2929,18 @@
                   // Fallback to Service Worker (required on mobile PWAs)
                   if ("serviceWorker" in navigator) {
                     try {
-                      console.log("Attempting Service Worker for scheduled notification...");
+                      console.log(
+                        "Attempting Service Worker for scheduled notification..."
+                      );
                       // Add timeout to avoid hanging
                       const swReady = Promise.race([
                         navigator.serviceWorker.ready,
-                        new Promise((_, reject) => setTimeout(() => reject(new Error("SW timeout")), 3000))
+                        new Promise((_, reject) =>
+                          setTimeout(
+                            () => reject(new Error("SW timeout")),
+                            3000
+                          )
+                        ),
                       ]);
                       const registration = await swReady;
                       console.log("SW ready, showing scheduled notification");
@@ -2940,7 +2952,9 @@
                         "luna_notify_shown_date",
                         today.toDateString()
                       );
-                      console.log("Scheduled notification shown via Service Worker");
+                      console.log(
+                        "Scheduled notification shown via Service Worker"
+                      );
                     } catch (swErr) {
                       console.error(
                         "Service Worker notification failed:",
