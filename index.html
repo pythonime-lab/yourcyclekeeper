@@ -1218,7 +1218,7 @@
           onclick="startApp()"
           disabled
         >
-          Begin my journey ✨
+          Start Tracking ✨
         </button>
       </div>
       <p class="privacy-note">
@@ -2701,25 +2701,14 @@
 
         console.log("Showing notification with options:", options);
 
-        // Try Service Worker first (only on http/https), but with timeout
+        // Try Service Worker first (only on http/https)
         if (
           "serviceWorker" in navigator &&
           (location.protocol === "http:" || location.protocol === "https:")
         ) {
           try {
-            console.log(
-              "Service Worker available, waiting for ready (with 2s timeout)..."
-            );
-            const timeoutPromise = new Promise((_, reject) =>
-              setTimeout(
-                () => reject(new Error("Service Worker timeout")),
-                2000
-              )
-            );
-            const registration = await Promise.race([
-              navigator.serviceWorker.ready,
-              timeoutPromise,
-            ]);
+            console.log("Service Worker available, waiting for ready...");
+            const registration = await navigator.serviceWorker.ready;
             console.log("Service Worker ready:", registration);
             if (registration) {
               console.log("Showing notification via Service Worker...");
@@ -2729,31 +2718,24 @@
             }
           } catch (err) {
             console.warn(
-              "Service Worker notification failed, falling back:",
+              "Service Worker notification failed:",
               err.message
             );
           }
         } else {
           console.log(
-            "Service Worker not available (file:// protocol or not supported), using direct Notification API"
+            "Service Worker not available (file:// protocol or not supported)"
           );
         }
 
-        // Fallback: use direct notification API
-        console.log("Using direct Notification API...");
-        try {
-          const notification = new Notification(title, options);
-          console.log("Direct notification created successfully");
-        } catch (err) {
-          console.error("Direct notification failed:", err);
-          showModal({
-            icon: "❌",
-            title: "Notification Failed",
-            msg: "Could not display notification: " + err.message,
-            cancelText: "",
-            confirmText: "OK",
-          });
-        }
+        // Fallback: show error (direct Notification API not allowed on mobile)
+        showModal({
+          icon: "⚠️",
+          title: "Service Worker Required",
+          msg: "Notifications require the Service Worker. Please make sure you're on HTTPS and the app is properly installed.",
+          cancelText: "",
+          confirmText: "OK",
+        });
       }
 
       async function scheduleNotification() {
