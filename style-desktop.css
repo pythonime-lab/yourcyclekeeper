@@ -4,7 +4,7 @@
   margin: 0 auto;
   padding: 0 1rem 1.5rem;
   display: grid !important;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
   gap: 1.25rem 1.5rem;
   align-items: start;
 }
@@ -73,6 +73,33 @@
   width: auto;
 }
 
+/* Show insights by default on desktop (Calendar tab) */
+.insights-wrap {
+  display: block !important;
+}
+
+/* Settings and About tabs */
+#view-settings,
+#view-about {
+  display: none;
+}
+
+#view-settings.visible,
+#view-about.visible {
+  display: block !important;
+}
+
+/* Hide insights when any settings page is visible */
+#view-about.visible ~ .insights-wrap,
+#view-settings.visible ~ .insights-wrap {
+  display: none !important;
+}
+
+/* Also handle reverse order - if insights comes after in some cases */
+body:has(.settings-wrap.visible) .insights-wrap {
+  display: none !important;
+}
+
 /* Right column container */
 #desktop-right-column {
   grid-column: 2;
@@ -91,6 +118,7 @@
   margin-left: 0;
   margin-right: 0;
   width: 100%;
+  margin-bottom: 1rem;
 }
 
 /* Keep original card sizing (no forced equal heights) */

@@ -236,6 +236,7 @@ async function submitPin() {
     updateStatusCard();
     renderCalendar();
     switchTab("calendar");
+    updateInsights(); // Populate insights for desktop view
   } catch (error) {
     console.error("🚨 PIN submission error:", error);
     document.getElementById("lock-error").textContent =
