@@ -6,7 +6,7 @@
 
 "use strict";
 
-const DB_NAME = "luna_cyclekeeper";
+const DB_NAME = "yourcyclekeeper";
 const DB_VERSION = 1;
 const STORE_NAME = "appdata";
 
