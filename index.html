@@ -22,7 +22,7 @@
     />
     <meta property="og:url" content="https://yourcyclekeeper.web.app/" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="canonical" href="/period-tracker/" />
+    <link rel="canonical" href="https://yourcyclekeeper.web.app/" />
 
     <!-- Favicons -->
     <link
@@ -64,12 +64,29 @@
       content="https://yourcyclekeeper.web.app/icons/favicon-512x512.png"
     />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500;600&display=swap"
-      rel="stylesheet"
-    />
+    <style>
+      @font-face {
+        font-family: "Outfit";
+        src: url("/fonts/Outfit/Outfit-VariableFont_wght.ttf") format("truetype");
+        font-weight: 100 900;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Playfair Display";
+        src: url("/fonts/Playfair_Display/PlayfairDisplay-VariableFont_wght.ttf") format("truetype");
+        font-weight: 400 900;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Playfair Display";
+        src: url("/fonts/Playfair_Display/PlayfairDisplay-Italic-VariableFont_wght.ttf") format("truetype");
+        font-weight: 400 900;
+        font-style: italic;
+        font-display: swap;
+      }
+    </style>
 
     <style>
       *,
@@ -81,7 +98,7 @@
       }
 
       :root {
-        --rose: #e6233b;
+        --rose: #c41e32;
         --rose-light: #ff5a6e;
         --rose-pale: #ffe8ee;
         --coral: #ff6b4a;
@@ -392,7 +409,7 @@
         background: var(--rose);
         margin-bottom: 1.2rem;
       }
-      .pillar h3 {
+      .pillar h2 {
         font-family: "Playfair Display", serif;
         font-size: 1.1rem;
         font-weight: 400;
@@ -434,7 +451,7 @@
         line-height: 1;
         flex-shrink: 0;
         width: 2.5rem;
-        opacity: 0.5;
+        opacity: 0.85;
         transition: opacity 0.2s;
       }
       .how-step:hover .step-num {
@@ -717,9 +734,11 @@
 
       /* SCROLL REVEAL */
       .reveal {
+        transition: opacity 0.65s ease, transform 0.65s ease;
+      }
+      .reveal.will-animate {
         opacity: 0;
         transform: translateY(20px);
-        transition: opacity 0.65s ease, transform 0.65s ease;
       }
       .reveal.visible {
         opacity: 1;
@@ -805,6 +824,7 @@
       </div>
     </nav>
 
+    <main>
     <!-- HERO -->
     <section class="hero">
       <div class="inner hero-inner">
@@ -858,7 +878,7 @@
       <div class="pillars-grid">
         <div class="pillar reveal">
           <div class="pillar-line"></div>
-          <h3>Stays On Your Device</h3>
+          <h2>Stays On Your Device</h2>
           <p>
             All data is stored in your browser's local storage. Nothing is ever
             sent to any server, ever.
@@ -866,7 +886,7 @@
         </div>
         <div class="pillar reveal">
           <div class="pillar-line"></div>
-          <h3>PIN Encrypted</h3>
+          <h2>PIN Encrypted</h2>
           <p>
             Your data is encrypted with AES-256-GCM using your PIN before being
             written to storage. We hold no keys.
@@ -874,7 +894,7 @@
         </div>
         <div class="pillar reveal">
           <div class="pillar-line"></div>
-          <h3>No Account Required</h3>
+          <h2>No Account Required</h2>
           <p>
             Zero sign-ups. Zero emails. Zero identity. Open the app and start
             tracking immediately.
@@ -882,7 +902,7 @@
         </div>
         <div class="pillar reveal">
           <div class="pillar-line"></div>
-          <h3>Free Forever</h3>
+          <h2>Free Forever</h2>
           <p>
             No freemium. No premium tier. No subscription. Your Cycle Keeper
             will always be completely free.
@@ -901,7 +921,7 @@
         <div class="how-layout">
           <div class="how-steps">
             <div class="how-step reveal">
-              <div class="step-num">01</div>
+              <div class="step-num" aria-hidden="true">01</div>
               <div class="step-content">
                 <h3>Enter Your Cycle Details</h3>
                 <p>
@@ -911,7 +931,7 @@
               </div>
             </div>
             <div class="how-step reveal">
-              <div class="step-num">02</div>
+              <div class="step-num" aria-hidden="true">02</div>
               <div class="step-content">
                 <h3>Set a Private PIN</h3>
                 <p>
@@ -922,7 +942,7 @@
               </div>
             </div>
             <div class="how-step reveal">
-              <div class="step-num">03</div>
+              <div class="step-num" aria-hidden="true">03</div>
               <div class="step-content">
                 <h3>Track Daily Symptoms</h3>
                 <p>
@@ -932,7 +952,7 @@
               </div>
             </div>
             <div class="how-step reveal">
-              <div class="step-num">04</div>
+              <div class="step-num" aria-hidden="true">04</div>
               <div class="step-content">
                 <h3>Understand Your Cycle</h3>
                 <p>
@@ -1297,6 +1317,7 @@
         License</span
       >
     </footer>
+    </main>
 
     <script>
       const observer = new IntersectionObserver(
@@ -1315,9 +1336,10 @@
         },
         { threshold: 0.08 }
       );
-      document
-        .querySelectorAll(".reveal")
-        .forEach((el) => observer.observe(el));
+      document.querySelectorAll(".reveal").forEach((el) => {
+        el.classList.add("will-animate");
+        observer.observe(el);
+      });
     </script>
   </body>
 </html>

@@ -7,22 +7,7 @@
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
 
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="
-    default-src 'none';
-    script-src 'self' 'unsafe-inline';
-    style-src 'self' 'unsafe-inline';
-    font-src 'self' data:;
-    img-src 'self' data:;
-    manifest-src 'self';
-    connect-src 'none';
-    object-src 'none';
-    base-uri 'self';
-    form-action 'none';
-  "
-    />
-
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta
       name="apple-mobile-web-app-status-bar-style"
@@ -130,7 +115,7 @@
       rel="icon"
       type="image/png"
       sizes="128x128"
-      href="../icons/favicon-128x128.png"
+      href="../icons/favicon-64x64.png"
     />
     <link
       rel="icon"
@@ -225,9 +210,12 @@
     <div id="lock-screen">
       <div class="lock-icon" id="lock-icon">
         <img
-          src="../icons/favicon-128x128.png"
+          src="../icons/favicon-64x64.png"
+          srcset="../icons/favicon-64x64.png 1x, ../icons/favicon-192x192.png 3x"
           alt="Your Cycle Keeper Logo"
           class="logo-lock"
+          width="64"
+          height="64"
         />
       </div>
       <div class="lock-logo">Your <span>Cycle</span> Keeper</div>
@@ -267,9 +255,12 @@
     <div id="onboarding" class="hidden">
       <div class="onboard-moon">
         <img
-          src="../icons/favicon-128x128.png"
+          src="../icons/favicon-64x64.png"
+          srcset="../icons/favicon-64x64.png 1x, ../icons/favicon-192x192.png 3x"
           alt="Your Cycle Keeper Logo"
           class="logo-onboard"
+          width="64"
+          height="64"
         />
       </div>
       <h1 class="onboard-logo">Your <span>Cycle</span> Keeper</h1>
@@ -461,7 +452,7 @@
         </div>
       </div>
 
-      <div id="desktop-right-column">
+      <div id="desktop-right-column" role="main" aria-label="App content">
         <!-- CALENDAR VIEW -->
         <div id="view-calendar">
           <!-- In-app Reminder Banner -->
