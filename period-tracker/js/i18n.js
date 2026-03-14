@@ -28,6 +28,9 @@ const LOCALES = {
   // ── English ────────────────────────────────────────────────────────────────
   en: {
     // About section (About, Privacy, Support, Disclaimer, Accessibility)
+    about_tab_developer: "Developer",
+    about_tab_privacy: "Privacy",
+    about_tab_disclaimer: "Disclaimer",
     privacy_title: "Privacy Guarantee",
     privacy_info:
       "Your Cycle Keeper collects zero data. This app: Stores all data locally on your device only; Has no servers, no accounts, no cloud storage; Has no analytics, no tracking, no telemetry; Has no ads, no third-party code; Never transmits any data anywhere; Is encrypted with your PIN via AES-256-GCM. Your health data is yours alone.",
@@ -67,6 +70,7 @@ const LOCALES = {
     disclaimer: "Disclaimer",
     estimation_disclaimer:
       "⚠️ This is an estimation tool only. Not for contraception. Stress, illness & medications can shift timing.",
+    no_symptoms_logged: "No symptoms logged yet — start by logging today",
     cycle_history: "Cycle History",
     all_months: "All Months",
     cycle_day: "Cycle Day",
@@ -121,11 +125,6 @@ const LOCALES = {
     // Note
     note_count: "{count} / 500",
 
-    // Period marking
-    set_past_period_title: "Set Past Period",
-    set_past_period_msg:
-      "To set periods from more than a week ago, please use Cycle Settings for accurate predictions.",
-    go_to_settings: "Go to Settings",
 
     // Symptom modals
     set_flow: "Set Flow",
@@ -141,8 +140,8 @@ const LOCALES = {
     set_mood: "Set Mood",
 
     // Reminder banner
-    period_expected_in_one: "Your period is expected in {n} day",
-    period_expected_in_many: "Your period is expected in {n} days",
+    period_expected_in_one: "Period expected in {n} day",
+    period_expected_in_many: "Period expected in {n} days",
 
     // Phase messages
     phase_menstruation: "Your period 🩸",
@@ -264,6 +263,8 @@ const LOCALES = {
     lang_es: "Español",
 
     // Settings HTML labels
+    settings_cycle_tab: "Cycle Settings",
+    settings_security_tab: "Security & Privacy",
     settings_cycle_section: "Cycle Settings",
     settings_last_period: "Last period start date",
     settings_cycle_length: "Average cycle length (days)",
@@ -297,6 +298,33 @@ const LOCALES = {
       "Data never leaves your device. No accounts, no tracking, forever free.",
     timeout_before: "⏱️ Session expires in",
     timeout_after: "s of inactivity — tap to reset",
+
+    // Flow labels
+    flow_light: "Light",
+    flow_medium: "Medium",
+    flow_heavy: "Heavy",
+
+    // Toast messages
+    settings_saved_toast: "Settings saved",
+    status_no_data_hint: "Set your last period date in Settings to get cycle predictions.",
+
+    // Storage full error
+    storage_full_title: "Storage Full",
+    storage_full_msg: "Your device storage is full. Please export your data or clear some logs to free up space.",
+
+    // Forgot PIN second confirmation
+    forgot_pin_confirm2_title: "Last Warning",
+    forgot_pin_confirm2_msg: "ALL your period tracking data will be permanently deleted and cannot be recovered. This cannot be undone.",
+    forgot_pin_confirm2_btn: "Yes, Delete Everything",
+
+    // Cycle history
+    no_cycle_history: "No cycle history yet. Log at least 2 periods to see history.",
+    history_showing: "Showing last {shown} of {total} cycles",
+
+    // History legend
+    legend_short: "Short (<26d)",
+    legend_normal: "Normal (26–32d)",
+    legend_long: "Long (>32d)",
   },
 
   // ── Russian ────────────────────────────────────────────────────────────────
@@ -326,7 +354,8 @@ const LOCALES = {
       "При регулярном цикле в 28 дней это означает, что дни с 8 по 17 обычно являются фертильными с овуляцией примерно на 14 день.",
     disclaimer: "Отказ от ответственности",
     estimation_disclaimer:
-      "⚠️ Это только инструмент оценки. Не для контрацепции. Стресс, болезни и лекарства могут изменить время.",
+      "⚠️ Это только инструмент для оценки. Не для контрацепции. Стресс, болезни и лекарства могут изменить сроки.",
+    no_symptoms_logged: "Симптомы пока не отмечены — начните отмечать их сегодня",
     cycle_history: "История цикла",
     all_months: "Все месяцы",
     cycle_day: "День цикла",
@@ -372,11 +401,6 @@ const LOCALES = {
 
     note_count: "{count} / 500",
 
-    set_past_period_title: "Добавление прошлой менструации",
-    set_past_period_msg:
-      "Для добавления менструаций старше недели используйте настройки цикла для точных прогнозов.",
-    go_to_settings: "Перейти в настройки",
-
     set_flow: "Интенсивность",
     save: "Сохранить",
     cancel: "Отмена",
@@ -389,9 +413,9 @@ const LOCALES = {
     mood_neutral: "Нейтральное",
     set_mood: "Настроение",
 
-    period_expected_in_one: "Ваша менструация ожидается через {n} день",
-    period_expected_in_few: "Ваша менструация ожидается через {n} дня",
-    period_expected_in_many: "Ваша менструация ожидается через {n} дней",
+    period_expected_in_one: "Менструация ожидается через {n} день",
+    period_expected_in_few: "Менструация ожидается через {n} дня",
+    period_expected_in_many: "Менструация ожидается через {n} дней",
 
     phase_menstruation: "Ваша менструация 🩸",
     phase_follicular: "Фолликулярная фаза ✨",
@@ -501,11 +525,16 @@ const LOCALES = {
 
     follicular: "Фолликулярная",
 
+    about_tab_developer: "Разработчик",
+    about_tab_privacy: "Приватность",
+    about_tab_disclaimer: "Отказ от ответственности",
     language_label: "Язык",
     lang_en: "English",
     lang_ru: "Русский",
     lang_es: "Español",
 
+    settings_cycle_tab: "Настройки цикла",
+    settings_security_tab: "Безопасность",
     settings_cycle_section: "Настройки цикла",
     settings_last_period: "Дата начала последней менструации",
     settings_cycle_length: "Средняя длина цикла (дни)",
@@ -539,6 +568,33 @@ const LOCALES = {
       "Данные не покидают ваше устройство. Без аккаунтов, без слежки, навсегда бесплатно.",
     timeout_before: "⏱️ Сессия истекает через",
     timeout_after: "с бездействия — нажмите для сброса",
+
+    // Flow labels
+    flow_light: "Слабые",
+    flow_medium: "Умеренные",
+    flow_heavy: "Обильные",
+
+    // Toast messages
+    settings_saved_toast: "Настройки сохранены",
+    status_no_data_hint: "Укажите дату последней менструации в настройках для получения прогнозов.",
+
+    // Storage full error
+    storage_full_title: "Хранилище заполнено",
+    storage_full_msg: "Хранилище устройства заполнено. Экспортируйте данные или удалите некоторые записи.",
+
+    // Forgot PIN second confirmation
+    forgot_pin_confirm2_title: "Последнее предупреждение",
+    forgot_pin_confirm2_msg: "ВСЕ ваши данные отслеживания цикла будут безвозвратно удалены. Это действие нельзя отменить.",
+    forgot_pin_confirm2_btn: "Да, удалить всё",
+
+    // Cycle history
+    no_cycle_history: "История циклов пока отсутствует. Зафиксируйте хотя бы 2 менструации.",
+    history_showing: "Показано последних {shown} из {total} циклов",
+
+    // History legend
+    legend_short: "Короткий (<26д)",
+    legend_normal: "Нормальный (26–32д)",
+    legend_long: "Длинный (>32д)",
   },
 
   // ── Belarusian (inactive — translations preserved for future use) ───────────
@@ -583,11 +639,6 @@ const LOCALES = {
       "Не ўдалося завяршыць наладку. Калі ласка, абнавіце старонку і паўтарыце спробу.",
 
     note_count: "{count} / 500",
-
-    set_past_period_title: "Дабаўленне мінулай менструацыі",
-    set_past_period_msg:
-      "Для дабаўлення менструацый старэй тыдня выкарыстоўвайце налады цыкла для дакладных прагнозаў.",
-    go_to_settings: "Перайсці ў налады",
 
     set_flow: "Інтэнсіўнасць",
     save: "Захаваць",
@@ -713,12 +764,17 @@ const LOCALES = {
 
     follicular: "Фалікулярная",
 
+    about_tab_developer: "Распрацоўшчык",
+    about_tab_privacy: "Прыватнасць",
+    about_tab_disclaimer: "Адмова ад адказнасці",
     language_label: "Мова",
     lang_en: "English",
     lang_ru: "Русский",
     lang_be: "Беларуская",
     lang_es: "Español",
 
+    settings_cycle_tab: "Налады цыкла",
+    settings_security_tab: "Бяспека",
     settings_cycle_section: "Налады цыкла",
     settings_last_period: "Дата пачатку апошняй менструацыі",
     settings_cycle_length: "Сярэдняя даўжыня цыкла (дні)",
@@ -742,7 +798,7 @@ const LOCALES = {
     ob_last_period: "Першы дзень апошняй менструацыі",
     ob_cycle_len: "Сярэдняя даўжыня цыкла (дні)",
     ob_period_dur: "Сярэдняя працягласць менструацыі (дні)",
-    pin_setup_title: "🔒 Задайце 4-значны PIN",
+    pin_setup_title: "🔒 Задаць 4-значны PIN",
     pin_setup_sub_1: "Ваш PIN шыфруе ўсе даныя лакальна.",
     pin_setup_sub_2: "Your Cycle Keeper ніколі не адпраўляе даныя.",
     pin_setup_sub_3: "Калі вы забудзецеся PIN, даныя будуць выдалены.",
@@ -752,6 +808,33 @@ const LOCALES = {
       "Даныя не пакідаюць вашу прыладу. Без акаўнтаў, без сачэння, назаўжды бясплатна.",
     timeout_before: "⏱️ Сесія заканчваецца праз",
     timeout_after: "с бяздзейнасці — націсніце для скіду",
+
+    // Flow labels
+    flow_light: "Слабыя",
+    flow_medium: "Умераныя",
+    flow_heavy: "Абутныя",
+
+    // Toast messages
+    settings_saved_toast: "Налады захаваны",
+    status_no_data_hint: "Усталюйце дату апошняй менструацыі ў налатах для атрымання прагнозаў.",
+
+    // Storage full error
+    storage_full_title: "Сховішча запоўнена",
+    storage_full_msg: "Сховішча прылады запоўнена. Экспартуйце дадзеныя або выдаліце некаторыя запісы.",
+
+    // Forgot PIN second confirmation
+    forgot_pin_confirm2_title: "Апошняе папярэджанне",
+    forgot_pin_confirm2_msg: "УСЕ вашы дадзеныя будуць назаўжды выдалены. Гэта дзеянне немагчыма адмяніць.",
+    forgot_pin_confirm2_btn: "Так, выдаліць усё",
+
+    // Cycle history
+    no_cycle_history: "Гісторыя цыклаў пакуль адсутнічае. Зафіксуйце хаця б 2 менструацыі.",
+    history_showing: "Паказана апошніх {shown} з {total} цыклаў",
+
+    // History legend
+    legend_short: "Кароткі (<26д)",
+    legend_normal: "Нармальны (26–32д)",
+    legend_long: "Доўгі (>32д)",
   },
 
   // ── Spanish ────────────────────────────────────────────────────────────────
@@ -778,7 +861,8 @@ const LOCALES = {
       "Para ciclos regulares de 28 días, esto significa que los días 8–17 suelen ser fértiles, con ovulación alrededor del día 14.",
     disclaimer: "Aviso",
     estimation_disclaimer:
-      "⚠️ Esta es solo una herramienta de estimación. No para anticoncepción. El estrés, la enfermedad y los medicamentos pueden cambiar el momento.",
+      "⚠️ Esta es solo una herramienta de estimación. No es para anticoncepción. El estrés, las enfermedades y los medicamentos pueden cambiar los tiempos.",
+    no_symptoms_logged: "Aún no hay síntomas registrados — comienza registrando hoy",
     cycle_history: "Historial del ciclo",
     all_months: "Todos los meses",
     cycle_day: "Día del ciclo",
@@ -792,6 +876,9 @@ const LOCALES = {
     db_error_msg:
       "No se pudo inicializar el almacenamiento. Por favor, recarga la página.",
 
+    about_tab_developer: "Desarrollador",
+    about_tab_privacy: "Privacidad",
+    about_tab_disclaimer: "Aviso",
     unlock_subtitle:
       "Ingresa tu PIN para desbloquear tus datos privados de salud",
     too_many_attempts: "Demasiados intentos. Inténtalo en {secs}s.",
@@ -826,11 +913,6 @@ const LOCALES = {
 
     note_count: "{count} / 500",
 
-    set_past_period_title: "Registrar período pasado",
-    set_past_period_msg:
-      "Para registrar períodos de hace más de una semana, usa la Configuración del ciclo para predicciones precisas.",
-    go_to_settings: "Ir a configuración",
-
     set_flow: "Flujo",
     save: "Guardar",
     cancel: "Cancelar",
@@ -843,8 +925,8 @@ const LOCALES = {
     mood_neutral: "Neutral",
     set_mood: "Estado de ánimo",
 
-    period_expected_in_one: "Tu período se espera en {n} día",
-    period_expected_in_many: "Tu período se espera en {n} días",
+    period_expected_in_one: "Periodo esperado en {n} día",
+    period_expected_in_many: "Periodo esperado en {n} días",
 
     phase_menstruation: "Tu período 🩸",
     phase_follicular: "Fase folicular ✨",
@@ -956,6 +1038,8 @@ const LOCALES = {
     lang_ru: "Русский",
     lang_es: "Español",
 
+    settings_cycle_tab: "Configuración del ciclo",
+    settings_security_tab: "Seguridad",
     settings_cycle_section: "Configuración del ciclo",
     settings_last_period: "Fecha de inicio del último período",
     settings_cycle_length: "Longitud promedio del ciclo (días)",
@@ -989,13 +1073,40 @@ const LOCALES = {
       "Los datos nunca salen de tu dispositivo. Sin cuentas, sin rastreo, gratis para siempre.",
     timeout_before: "⏱️ La sesión expira en",
     timeout_after: "s de inactividad — toca para restablecer",
+
+    // Flow labels
+    flow_light: "Ligero",
+    flow_medium: "Moderado",
+    flow_heavy: "Abundante",
+
+    // Toast messages
+    settings_saved_toast: "Ajustes guardados",
+    status_no_data_hint: "Configura la fecha de tu último período en Ajustes para obtener predicciones.",
+
+    // Storage full error
+    storage_full_title: "Almacenamiento lleno",
+    storage_full_msg: "El almacenamiento de tu dispositivo está lleno. Por favor exporta tus datos o elimina algunos registros.",
+
+    // Forgot PIN second confirmation
+    forgot_pin_confirm2_title: "Última advertencia",
+    forgot_pin_confirm2_msg: "TODOS tus datos de seguimiento serán eliminados permanentemente y no podrán recuperarse. Esto no se puede deshacer.",
+    forgot_pin_confirm2_btn: "Sí, eliminar todo",
+
+    // Cycle history
+    no_cycle_history: "Aún no hay historial de ciclos. Registra al menos 2 períodos para ver el historial.",
+    history_showing: "Mostrando los últimos {shown} de {total} ciclos",
+
+    // History legend
+    legend_short: "Corto (<26d)",
+    legend_normal: "Normal (26–32d)",
+    legend_long: "Largo (>32d)",
   },
 };
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
 const LANG_STORAGE_KEY = "yck_lang";
-const SUPPORTED = ["en", "ru", "es"];
+const SUPPORTED = ["en"];
 
 function detectLanguage() {
   try {

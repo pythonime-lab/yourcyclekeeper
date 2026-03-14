@@ -457,13 +457,12 @@ body {
   color: var(--rose-light);
   font-style: italic;
 }
-
 .status-card {
   margin: 1rem 1rem 0;
   background: linear-gradient(135deg, #2a1040 0%, #1a0828 100%);
   border: 0.0625rem solid var(--border);
   border-radius: 1.5rem;
-  padding: 1.375rem 1.375rem 1.25rem;
+  padding: 1.125rem;
   position: relative;
   overflow: hidden;
 }
@@ -494,6 +493,9 @@ body {
   font-size: 0.875rem;
   color: var(--text-muted);
   margin-bottom: 1.125rem;
+}
+.status-subtitle:empty {
+  display: none;
 }
 .status-row {
   display: flex;
@@ -709,8 +711,8 @@ body {
 .log-panel {
   background: var(--card);
   border: 0.0625rem solid var(--border);
-  border-radius: 1.25rem;
-  padding: 1.125rem;
+  border-radius: 1.5rem;
+  padding: 1.5rem;
   max-width: 28rem;
   width: 100%;
   max-height: 90vh;
@@ -740,7 +742,12 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 2rem;
+  margin-bottom: 0.75rem;
+  position: sticky;
+  top: 0;
+  background: var(--card);
+  z-index: 1;
+  padding-bottom: 0.5rem;
 }
 .close-btn {
   background: none;
@@ -768,8 +775,8 @@ body {
 .log-options {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
-  margin-bottom: 0.875rem;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
 }
 .log-btn {
   padding: 0.625rem 0.375rem;
@@ -858,41 +865,6 @@ body {
   width: 100%;
   cursor: pointer;
 }
-.period-markers {
-  display: flex;
-  gap: 0.625rem;
-  margin-bottom: 1rem;
-}
-.period-marker-btn {
-  flex: 1;
-  background: rgba(255, 255, 255, 0.05);
-  border: 0.125rem solid var(--border);
-  border-radius: 0.875rem;
-  padding: 0.625rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.375rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 0.8125rem;
-  color: var(--text-muted);
-}
-.period-marker-btn .icon {
-  font-size: 1.125rem;
-}
-.period-marker-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(167, 139, 250, 0.3);
-}
-.period-marker-btn.active {
-  background: linear-gradient(135deg, var(--rose), #c82050);
-  border-color: var(--rose);
-  color: white;
-}
-.period-marker-btn:active {
-  transform: scale(0.97);
-}
 .log-note {
   width: 100%;
   background: rgba(255, 255, 255, 0.05);
@@ -909,49 +881,78 @@ body {
 .log-note:focus {
   border-color: rgba(167, 139, 250, 0.5);
 }
-.log-save-btn {
-  flex: 1;
-  background: linear-gradient(135deg, var(--rose), #c82050);
-  color: white;
-  border: none;
-  border-radius: 0.875rem;
-  padding: 0.8125rem;
-  font-family: inherit;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.log-save-btn:active {
-  transform: scale(0.97);
-}
-.log-delete-btn {
-  flex: 1;
-  background: linear-gradient(135deg, #666, #444);
-  color: white;
-  border: none;
-  border-radius: 0.875rem;
-  padding: 0.8125rem;
-  font-family: inherit;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.log-delete-btn:active {
-  transform: scale(0.97);
-}
-.log-actions {
+
+.note-footer-row {
   display: flex;
-  gap: 0.625rem;
-  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: -0.25rem;
+  margin-bottom: 1.5rem;
 }
 .note-limit {
   font-size: 0.6875rem;
   color: var(--text-muted);
-  text-align: right;
-  margin-top: -0.5rem;
-  margin-bottom: 0.5rem;
+}
+.autosave-indicator {
+  font-size: 0.6875rem;
+  color: var(--teal);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.autosave-indicator.visible {
+  opacity: 1;
+}
+.log-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.625rem;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+.log-reset-btn {
+  background: transparent;
+  border: 0.09375rem solid rgba(226, 87, 74, 0.35);
+  border-radius: 0.75rem;
+  color: rgba(226, 87, 74, 0.65);
+  font-family: inherit;
+  font-size: 0.875rem;
+  padding: 0.625rem 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.log-reset-btn:hover {
+  color: rgba(226, 87, 74, 0.9);
+  border-color: rgba(226, 87, 74, 0.65);
+  background: rgba(226, 87, 74, 0.07);
+}
+.log-reset-btn:active {
+  transform: scale(0.96);
+}
+.log-reset-btn.confirming {
+  color: var(--rose);
+  border-color: rgba(255, 61, 107, 0.7);
+  background: rgba(255, 61, 107, 0.1);
+  font-weight: 600;
+}
+.log-done-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  border: 0.09375rem solid var(--border);
+  border-radius: 0.75rem;
+  padding: 0.625rem 1.5rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.log-done-btn:hover {
+  background: rgba(255, 255, 255, 0.13);
+}
+.log-done-btn:active {
+  transform: scale(0.97);
 }
 
 .insights-wrap {
@@ -1001,6 +1002,7 @@ body {
   transition: all 0.2s cubic-bezier(0.19, 1, 0.22, 1);
   text-align: center;
   position: relative;
+  opacity: 0.4;
 }
 .insight-tab-btn::after {
   content: "";
@@ -1009,7 +1011,7 @@ body {
   left: 20%;
   right: 20%;
   height: 2px;
-  background: var(--primary);
+  background: #9b7fe0;
   opacity: 0;
   transition: all 0.25s ease;
 }
@@ -1032,17 +1034,18 @@ body {
   color: #fff;
   font-weight: 500;
   z-index: 11;
+  opacity: 1;
 }
 .insight-tab-btn.active::after {
   opacity: 1;
-  left: 1.25rem;
-  right: 1.25rem;
+  left: 0.75rem;
+  right: 0.75rem;
 }
 .insight-tab-content {
   background: var(--card);
   border: 0.0625rem solid var(--border);
   border-radius: 0 0 1.25rem 1.25rem;
-  padding: 1.25rem;
+  padding: 1.5rem 1.125rem 1.125rem;
   position: relative;
   z-index: 5;
 }
@@ -1077,16 +1080,20 @@ body {
   gap: 0.625rem;
 }
 .stat-box {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.04);
   border-radius: 0.875rem;
-  padding: 0.875rem;
+  padding: 0.5rem 0.75rem;
   text-align: center;
+  transition: transform 0.2s;
+}
+.stat-box:hover {
+  background: rgba(255, 255, 255, 0.08);
 }
 .stat-box .big {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  line-height: 1;
-  margin-bottom: 0.25rem;
+  line-height: 1.1;
+  margin-bottom: 0.125rem;
 }
 .stat-box .sm {
   font-size: 0.6875rem;
@@ -1127,6 +1134,10 @@ body {
 }
 .settings-wrap.visible {
   display: block;
+}
+
+.settings-tabs-nav {
+  display: none;
 }
 
 /* Support tab mode: show only About + Support sections */
@@ -1337,14 +1348,18 @@ body {
 
 /* Reminder Banner */
 .reminder-banner {
-  display: none;
-  background: linear-gradient(135deg, var(--amber), #f59e0b);
-  padding: 0.875rem 1.25rem;
-  border-radius: 0.75rem;
-  margin: 0 1.25rem 1rem;
-  color: white;
-  font-weight: 600;
-  text-align: center;
+  display: none; /* Controlled by JS */
+  background: rgba(245, 158, 11, 0.1);
+  border: 0.0625rem solid rgba(245, 158, 11, 0.3);
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.625rem;
+  margin: 0.25rem 0 1.25rem;
+  color: var(--amber);
+  font-weight: 500;
+  font-size: 0.75rem;
+  width: fit-content;
+  align-items: center;
+  gap: 0.375rem;
 }
 
 /* Legend Dot Colors */
@@ -1369,7 +1384,7 @@ body {
   color: var(--text-muted);
   font-size: 0.875rem;
   text-align: center;
-  margin: -0.5rem 0 1rem;
+  margin: 0 0 1.25rem;
 }
 
 /* Stat Box Colors */
@@ -1424,13 +1439,11 @@ body {
   display: flex;
   gap: 0.5rem;
   align-items: center;
-  margin: 0 0 1rem 0;
-  padding: 0 1.25rem;
+  margin: 0 0 0.5rem 0;
 }
 
 .chart-select {
   width: auto;
-  min-width: 100px;
   padding: 0.5rem 1.75rem 0.5rem 0.75rem;
   font-size: 0.875rem;
   background: rgba(255, 255, 255, 0.08);
@@ -1451,23 +1464,12 @@ body {
   color: white;
 }
 
-/* Chart Container */
-.chart-container {
-  margin: 0 -1.25rem;
-  padding: 0;
-}
-
-.chart-canvas {
-  width: 100%;
-  max-height: 300px;
-  display: block;
-}
-
 /* Chart Legend */
 .chart-legend {
   font-size: 0.75rem;
   color: var(--text-muted);
-  padding: 0 1.25rem;
+  padding: 0;
+  margin-top: 0.5rem;
 }
 
 .legend-items {
@@ -1684,3 +1686,65 @@ body {
       --text: #333333;
   } */
 }
+
+/* ── Toast notification ─────────────────────────────────────────────────────── */
+#toast {
+  position: fixed;
+  bottom: 5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(1rem);
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.6rem 1.2rem;
+  border-radius: 2rem;
+  font-size: 0.875rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 9999;
+  white-space: nowrap;
+}
+#toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── Calendar nav disabled state ────────────────────────────────────────────── */
+.cal-nav-btn.nav-disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+
+/* ── Status empty hint ───────────────────────────────────────────────────────── */
+.status-empty-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 0.5rem 1rem;
+  margin-top: 0.5rem;
+}
+.status-empty-hint.hidden {
+  display: none;
+}
+
+/* ── History legend ─────────────────────────────────────────────────────────── */
+.history-legend {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+.legend-dot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  margin-right: 0.25rem;
+  vertical-align: middle;
+}
+
+/* ── Log panel sticky header: already defined above, properties merged ───────── */

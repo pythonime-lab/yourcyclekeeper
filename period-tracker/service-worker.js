@@ -15,7 +15,7 @@
 
 "use strict";
 
-const CACHE_VERSION = "v20260310-i18n-onboard";
+const CACHE_VERSION = "production";
 const CACHE_NAME = `yourcyclekeeper-${CACHE_VERSION}`;
 
 self.addEventListener("install", (event) => {
@@ -74,22 +74,22 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Cache-first for other assets (CSS, JS, images)
+  // Network-first for CSS, JS, and logical assets
+  // This ensures updates are seen immediately while online,
+  // but the app still works offline as a PWA.
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      // Not in cache: fetch and cache for future use
-      return fetch(event.request).then((response) => {
-        if (!response || response.status !== 200 || response.type !== "basic") {
-          return response;
+    fetch(event.request)
+      .then((response) => {
+        if (response && response.status === 200 && response.type === "basic") {
+          const cloned = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cloned));
         }
-        const cloned = response.clone();
-        caches
-          .open(CACHE_NAME)
-          .then((cache) => cache.put(event.request, cloned));
         return response;
-      });
-    })
+      })
+      .catch(() => {
+        // Offline? Fallback to cache.
+        return caches.match(event.request);
+      })
   );
 });
 

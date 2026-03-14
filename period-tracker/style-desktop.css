@@ -165,6 +165,77 @@ body:has(.settings-wrap.visible) .insights-wrap {
   display: none !important;
 }
 
+/* Consolidated Tab Navigation (Settings & Insights) */
+.settings-tabs-nav,
+.insight-tabs-nav {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.625rem !important;
+  row-gap: 0.5rem !important;
+  margin-bottom: 1rem !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+.settings-tab-btn,
+.insight-tab-btn {
+  flex: 0 0 auto !important;
+  background: rgba(167, 139, 250, 0.08) !important;
+  border: 0.0625rem solid rgba(167, 139, 250, 0.2) !important;
+  border-radius: 8px !important;
+  color: #c4b5fd !important;
+  padding: 0.5rem 1.25rem !important;
+  font-size: 0.875rem !important;
+  font-family: inherit !important;
+  opacity: 1 !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.19, 1, 0.22, 1) !important;
+  font-weight: 500 !important;
+}
+
+.settings-tab-btn:hover:not(.active),
+.insight-tab-btn:hover:not(.active) {
+  background: rgba(167, 139, 250, 0.15) !important;
+  color: #fff !important;
+}
+
+.settings-tab-btn.active,
+.insight-tab-btn.active {
+  background: rgba(167, 139, 250, 0.2) !important;
+  color: #fff !important;
+  border-color: rgba(167, 139, 250, 0.5) !important;
+  box-shadow: 0 0 15px rgba(167, 139, 250, 0.15) !important;
+  z-index: 5 !important;
+}
+
+/* Specific Cleanups */
+.insight-tab-btn::after {
+  display: none !important;
+}
+
+.insight-tab-btn:first-child,
+.insight-tab-btn:last-child {
+  border-radius: 8px !important;
+}
+
+.settings-tab-content {
+  display: none;
+}
+
+.settings-tab-content.active {
+  display: block;
+}
+
+.insight-tab-content {
+  border-radius: 1.25rem !important;
+  padding-top: 1.25rem !important;
+}
+
+.settings-tab-content .settings-section:first-child {
+  padding-top: 1.25rem !important;
+}
+
 /* Right column container */
 #desktop-right-column {
   grid-column: 2;
@@ -189,11 +260,25 @@ body:has(.settings-wrap.visible) .insights-wrap {
   width: 100%;
 }
 
-/* Keep original card sizing (no forced equal heights) */
+/* Match card heights for alignment on desktop */
 #view-insights .insight-card:first-child,
 .status-card {
-  height: auto;
-  min-height: 0;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  margin: 0 0 1rem 0 !important;
+}
+
+/* Ensure content distributes nicely inside the matched height cards */
+#view-insights .insight-card:first-child .stat-grid {
+  flex: 1;
+  display: grid;
+  align-content: center;
+}
+
+.status-card .status-row {
+  margin-top: auto;
 }
 
 /* Calendar always visible on right column */
@@ -216,14 +301,7 @@ body:has(.settings-wrap.visible) .insights-wrap {
 }
 
 .chart-canvas {
-  max-width: 100%;
   width: 100% !important;
-  height: auto !important;
+  max-width: 100%;
   display: block;
-}
-
-#pain-chart {
-  max-width: 100%;
-  width: 100% !important;
-  height: auto !important;
 }

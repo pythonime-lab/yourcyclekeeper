@@ -23,16 +23,13 @@ import {
   getCycleInfo,
   calculatePredictions,
   getDayType,
-  getManualPeriodRange,
   isPredictedFuturePeriod,
   setState as setCyclesState,
 } from "./cycles.js";
 import { initKeyboardNavigation, setNavigationState } from "./navigation.js";
 import { t, tp, applyI18n, setLanguage, getLanguage, getSupportedLanguages } from "./i18n.js";
 import {
-  cleanupConsecutiveMarkers,
   cleanupEmptyLogs,
-  recalculateCycleFromMarkers,
   setState as setPeriodMarkingState,
 } from "./periodMarking.js";
 
@@ -117,6 +114,19 @@ function setupEventListeners() {
       { passive: false }
     );
   });
+}
+
+function showToast(msg, duration = 2500) {
+  let toast = document.getElementById("toast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "toast";
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.classList.add("visible");
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => toast.classList.remove("visible"), duration);
 }
 
 function showModal({
@@ -292,46 +302,70 @@ async function forgotPinFlow() {
     msg: t("forgot_pin_msg"),
     confirmText: t("forgot_pin_confirm"),
     cancelText: t("cancel"),
-    onConfirm: async () => {
-      try {
-        await clearDB();
-        sessionStorage.clear();
-        state = {
-          lastPeriodStart: null,
-          cycleLength: 28,
-          periodDuration: 5,
-          logs: {},
-          cycleHistory: [],
-        };
-        // Re-initialize module state references after creating new state
-        setCyclesState(state);
-        setPeriodMarkingState(state);
-        pinAttempts = 0;
-        pinLockUntil = 0;
-        sessionPin = null;
-        document.getElementById("lock-screen").classList.add("hidden");
-        document.getElementById("onboarding").classList.remove("hidden");
-        document.getElementById("app").style.display = "none";
-        document.getElementById("bottom-nav").style.display = "none";
-        document.getElementById("lock-error").textContent = "";
-        showModal({
-          icon: "✅",
-          title: t("reset_complete_title"),
-          msg: t("reset_complete_msg"),
-          cancelText: "",
-          confirmText: t("ok"),
-        });
-      } catch (error) {
-        console.error("🚨 Reset error:", error);
-        showModal({
-          icon: "⚠️",
-          title: t("reset_failed_title"),
-          msg: t("reset_failed_msg"),
-          confirmText: t("ok"),
-        });
-      }
+    onConfirm: () => {
+      // Second confirmation step
+      showModal({
+        icon: "⚠️",
+        title: t("forgot_pin_confirm2_title"),
+        msg: t("forgot_pin_confirm2_msg"),
+        confirmText: t("forgot_pin_confirm2_btn"),
+        cancelText: t("cancel"),
+        onConfirm: async () => {
+          try {
+            await _executeForgotPinReset();
+          } catch (error) {
+            console.error("🚨 Reset error:", error);
+            showModal({
+              icon: "⚠️",
+              title: t("reset_failed_title"),
+              msg: t("reset_failed_msg"),
+              confirmText: t("ok"),
+            });
+          }
+        },
+      });
     },
   });
+}
+
+async function _executeForgotPinReset() {
+  try {
+    await clearDB();
+    sessionStorage.clear();
+    state = {
+      lastPeriodStart: null,
+      cycleLength: 28,
+      periodDuration: 5,
+      logs: {},
+      cycleHistory: [],
+    };
+    // Re-initialize module state references after creating new state
+    setCyclesState(state);
+    setPeriodMarkingState(state);
+    pinAttempts = 0;
+    pinLockUntil = 0;
+    sessionPin = null;
+    document.getElementById("lock-screen").classList.add("hidden");
+    document.getElementById("onboarding").classList.remove("hidden");
+    document.getElementById("app").style.display = "none";
+    document.getElementById("bottom-nav").style.display = "none";
+    document.getElementById("lock-error").textContent = "";
+    showModal({
+      icon: "✅",
+      title: t("reset_complete_title"),
+      msg: t("reset_complete_msg"),
+      cancelText: "",
+      confirmText: t("ok"),
+    });
+  } catch (error) {
+    console.error("🚨 Reset error:", error);
+    showModal({
+      icon: "⚠️",
+      title: t("reset_failed_title"),
+      msg: t("reset_failed_msg"),
+      confirmText: t("ok"),
+    });
+  }
 }
 
 async function save() {
@@ -339,7 +373,20 @@ async function save() {
   try {
     const salt = await getOrCreateSalt();
     const enc = await encryptData(state, sessionPin, salt);
-    await setInDB(STORE_KEY, enc);
+    try {
+      await setInDB(STORE_KEY, enc);
+    } catch (e) {
+      if (e.name === "QuotaExceededError" || e.name === "NS_ERROR_DOM_QUOTA_REACHED") {
+        showModal({
+          icon: "⚠️",
+          title: t("storage_full_title"),
+          msg: t("storage_full_msg"),
+          confirmText: t("ok"),
+        });
+        return;
+      }
+      throw e;
+    }
   } catch (error) {
     console.error("🚨 Save error:", error);
     showModal({
@@ -436,7 +483,7 @@ async function startApp() {
 // Date utility functions are now imported from dateUtils.js
 
 // Cycle functions are now imported from cycles.js
-// They were: getCycleInfo, calculatePredictions, getDayType, getManualPeriodRange, isPredictedFuturePeriod
+// They were: getCycleInfo, calculatePredictions, getDayType, isPredictedFuturePeriod
 
 // Validator functions are now imported from validators.js
 // They were: sanitize, safeText
@@ -484,6 +531,58 @@ async function autoSaveSymptomSelection() {
   updateInsights();
 }
 
+// ── Autosave note debounce ──────────────────────────────────────────────
+let _noteSaveTimer = null;
+function scheduleAutoSaveNote() {
+  // Show "saving…" feel
+  const indicator = document.getElementById("autosave-indicator");
+  if (indicator) {
+    indicator.textContent = "Saving…";
+    indicator.classList.add("visible");
+  }
+  clearTimeout(_noteSaveTimer);
+  _noteSaveTimer = setTimeout(async () => {
+    await autoSaveSymptomSelection();
+    showAutosaveIndicator();
+  }, 800);
+}
+
+function showAutosaveIndicator() {
+  const indicator = document.getElementById("autosave-indicator");
+  if (!indicator) return;
+  indicator.textContent = "All changes saved \u2713";
+  indicator.classList.add("visible");
+  setTimeout(() => {
+    indicator.classList.remove("visible");
+  }, 2500);
+}
+
+async function resetLogWithConfirm() {
+  // Two-tap confirmation: first click shows confirm state, second click resets
+  const btn = document.getElementById("log-reset-btn");
+  if (!btn) return;
+
+  if (btn.dataset.confirming === "true") {
+    // Second tap — actually reset
+    btn.dataset.confirming = "false";
+    btn.textContent = "\u21ba Reset day";
+    btn.classList.remove("confirming");
+    clearTimeout(btn._confirmTimer);
+    await deleteLog();
+    showAutosaveIndicator();
+  } else {
+    // First tap — ask for confirmation
+    btn.dataset.confirming = "true";
+    btn.textContent = "Tap again to reset";
+    btn.classList.add("confirming");
+    btn._confirmTimer = setTimeout(() => {
+      btn.dataset.confirming = "false";
+      btn.textContent = "\u21ba Reset day";
+      btn.classList.remove("confirming");
+    }, 3000);
+  }
+}
+
 async function deleteLog() {
   if (!selectedDate || !/^\d{4}-\d{2}-\d{2}$/.test(selectedDate)) return;
 
@@ -510,139 +609,6 @@ async function deleteLog() {
   renderCalendar();
   updateStatusCard();
   updateInsights();
-}
-
-async function togglePeriodStart() {
-  if (!selectedDate || !/^\d{4}-\d{2}-\d{2}$/.test(selectedDate)) return;
-
-  // Check if date is too far in the past
-  const selectedD = fromISO(selectedDate);
-  const todayD = fromISO(today());
-  const daysDiff = diffDays(selectedD, todayD);
-
-  if (daysDiff > 7) {
-    showModal({
-      icon: "📅",
-      title: t("set_past_period_title"),
-      msg: t("set_past_period_msg"),
-      confirmText: t("go_to_settings"),
-      cancelText: t("cancel"),
-      onConfirm: () => {
-        closeLogPanel();
-        switchTab("settings");
-      },
-    });
-    return;
-  }
-
-  const log = state.logs[selectedDate] || {};
-  log.periodStart = !log.periodStart;
-
-  // If turning off, delete the property entirely
-  if (!log.periodStart) {
-    delete log.periodStart;
-  }
-
-  // If marking as start, remove end marker
-  if (log.periodStart && log.periodEnd) {
-    delete log.periodEnd;
-  }
-
-  state.logs[selectedDate] = log;
-  updatePeriodButtonVisuals();
-
-  // Clean up duplicate consecutive markers
-  cleanupConsecutiveMarkers();
-
-  // Clean up empty logs
-  cleanupEmptyLogs();
-
-  // Recalculate cycle based on manual markers
-  recalculateCycleFromMarkers();
-
-  await save();
-  renderCalendar();
-  updateStatusCard();
-  updateInsights();
-}
-
-async function togglePeriodEnd() {
-  if (!selectedDate || !/^\d{4}-\d{2}-\d{2}$/.test(selectedDate)) return;
-
-  // Check if date is too far in the past
-  const selectedD = fromISO(selectedDate);
-  const todayD = fromISO(today());
-  const daysDiff = diffDays(selectedD, todayD);
-
-  if (daysDiff > 7) {
-    showModal({
-      icon: "📅",
-      title: t("set_past_period_title"),
-      msg: t("set_past_period_msg"),
-      confirmText: t("go_to_settings"),
-      cancelText: t("cancel"),
-      onConfirm: () => {
-        closeLogPanel();
-        switchTab("settings");
-      },
-    });
-    return;
-  }
-
-  const log = state.logs[selectedDate] || {};
-  const wasSet = log.periodEnd;
-  log.periodEnd = !log.periodEnd;
-
-  // If turning off, delete the property entirely
-  if (!log.periodEnd) {
-    delete log.periodEnd;
-  }
-
-  // If marking as end, remove start marker
-  if (log.periodEnd && log.periodStart) {
-    delete log.periodStart;
-  }
-
-  state.logs[selectedDate] = log;
-  updatePeriodButtonVisuals();
-
-  // Clean up duplicate consecutive markers
-  cleanupConsecutiveMarkers();
-
-  // Clean up empty logs
-  cleanupEmptyLogs();
-
-  // Recalculate cycle based on manual markers
-  recalculateCycleFromMarkers();
-
-  await save();
-  renderCalendar();
-  updateStatusCard();
-  updateInsights();
-}
-
-function updatePeriodButtonVisuals() {
-  if (!selectedDate) return;
-
-  const log = state.logs[selectedDate] || {};
-  const startBtn = document.getElementById("log-period-start");
-  const endBtn = document.getElementById("log-period-end");
-
-  if (startBtn) {
-    if (log.periodStart) {
-      startBtn.classList.add("active");
-    } else {
-      startBtn.classList.remove("active");
-    }
-  }
-
-  if (endBtn) {
-    if (log.periodEnd) {
-      endBtn.classList.add("active");
-    } else {
-      endBtn.classList.remove("active");
-    }
-  }
 }
 
 function flowIconFromValue(value) {
@@ -683,9 +649,17 @@ function updateFlowButtonVisual(value, isSet = true) {
   if (flowIcon) flowIcon.textContent = flowIconFromValue(v);
 }
 
+function flowWordLabelFromValue(value) {
+  const v = normalizeFlowValue(value, 1);
+  if (v === 1) return t("flow_light");
+  if (v === 2) return t("flow_medium");
+  return t("flow_heavy");
+}
+
 function updateFlowModalPreview(value) {
   const slider = document.getElementById("flow-modal-slider");
   const label = document.getElementById("flow-modal-value");
+  const wordLabel = document.getElementById("flow-modal-word");
   if (!slider || !label) return;
   const v = normalizeFlowValue(value, 1);
   slider.style.accentColor = "#FF3D6B";
@@ -694,6 +668,7 @@ function updateFlowModalPreview(value) {
   label.style.whiteSpace = "nowrap";
   label.style.letterSpacing = "-0.22em";
   label.style.lineHeight = "1";
+  if (wordLabel) wordLabel.textContent = flowWordLabelFromValue(v);
 }
 
 function showFlowModal() {
@@ -716,6 +691,9 @@ function showFlowModal() {
   const valueEl = document.createElement("div");
   valueEl.id = "flow-modal-value";
   valueEl.className = "flow-modal-value";
+  const wordEl = document.createElement("div");
+  wordEl.id = "flow-modal-word";
+  wordEl.style.cssText = "font-size:0.875rem;color:var(--text-muted);margin-top:0.25rem;text-align:center;";
   const slider = document.createElement("input");
   slider.type = "range";
   slider.min = "1";
@@ -728,6 +706,7 @@ function showFlowModal() {
     updateFlowModalPreview(e.target.value)
   );
   wrap.appendChild(valueEl);
+  wrap.appendChild(wordEl);
   wrap.appendChild(slider);
   msgEl.appendChild(wrap);
 
@@ -742,6 +721,7 @@ function showFlowModal() {
     updateFlowButtonVisual(v, true);
     overlay.classList.remove("visible");
     await autoSaveSymptomSelection();
+    showAutosaveIndicator();
   };
   cancelBtn.onclick = () => {
     overlay.classList.remove("visible");
@@ -855,6 +835,7 @@ function showPainModal() {
     updatePainButtonVisual(v, true);
     overlay.classList.remove("visible");
     await autoSaveSymptomSelection();
+    showAutosaveIndicator();
   };
   cancelBtn.onclick = () => {
     overlay.classList.remove("visible");
@@ -917,7 +898,7 @@ function updateMoodButtonVisual(value, isSet = true) {
       moodBtn.style.color = "";
     }
   }
-  if (moodIcon) moodIcon.textContent = "😐";
+  if (moodIcon) moodIcon.textContent = moodIconFromValue(v);
 }
 
 function updateMoodModalPreview(value) {
@@ -997,6 +978,7 @@ function showMoodModal() {
     updateMoodButtonVisual(v, true);
     overlay.classList.remove("visible");
     await autoSaveSymptomSelection();
+    showAutosaveIndicator();
   };
   cancelBtn.onclick = () => {
     overlay.classList.remove("visible");
@@ -1014,7 +996,15 @@ function showMoodModal() {
 
 function updateStatusCard() {
   const info = getCycleInfo();
-  if (!info) return;
+  const emptyHint = document.getElementById("status-empty-hint");
+  if (!info) {
+    if (emptyHint) {
+      emptyHint.textContent = t("status_no_data_hint");
+      emptyHint.classList.remove("hidden");
+    }
+    return;
+  }
+  if (emptyHint) emptyHint.classList.add("hidden");
   const phaseTagKey = {
     Menstruation: "period_short",
     Follicular: "follicular",
@@ -1022,9 +1012,16 @@ function updateStatusCard() {
     Ovulation: "ovulation_short",
     Luteal: "luteal",
   }[info.phase] || "period_short";
+  const phaseEl = document.getElementById("status-phase");
+  if (phaseEl) phaseEl.style.color = info.phaseColor;
+
   safeText("status-phase-text", t(phaseTagKey).toUpperCase());
   safeText("status-title", getPhaseMessage(info));
-  safeText("status-subtitle", getPhaseSubtitle(info));
+
+  // Hide subtitle if the reminder chip captures the same 'Next period in X days' info
+  const showReminder = info.daysUntilNext > 0 && info.daysUntilNext <= 3;
+  safeText("status-subtitle", showReminder ? "" : getPhaseSubtitle(info));
+
   safeText("cycle-day", info.cycleDay);
   safeText(
     "days-until-next",
@@ -1043,7 +1040,7 @@ function updateReminderBanner(info) {
   // Show banner if period is coming within 3 days
   if (info.daysUntilNext > 0 && info.daysUntilNext <= 3) {
     text.textContent = tp("period_expected_in", info.daysUntilNext);
-    banner.style.display = "block";
+    banner.style.display = "flex";
   } else {
     banner.style.display = "none";
   }
@@ -1119,15 +1116,19 @@ function updateInsights() {
   safeText("fertile-window", info.fertileEnd - info.fertileStart + 1);
 
   const hist = document.getElementById("cycle-history");
+  const histCount = document.getElementById("history-count");
   if (!state.cycleHistory || state.cycleHistory.length === 0) {
     hist.innerHTML = "";
     const p = document.createElement("p");
     p.style.cssText = "color:var(--text-muted);font-size:0.875rem";
-    p.textContent = t("cycle_history_empty");
+    p.textContent = t("no_cycle_history");
     hist.appendChild(p);
+    if (histCount) histCount.textContent = "";
     return;
   }
   hist.innerHTML = "";
+  const total = state.cycleHistory.length;
+  const shown = Math.min(6, total);
   [...state.cycleHistory]
     .slice(-6)
     .reverse()
@@ -1146,6 +1147,9 @@ function updateInsights() {
       row.appendChild(lenSpan);
       hist.appendChild(row);
     });
+  if (histCount) {
+    histCount.textContent = total > 6 ? t("history_showing", { shown, total }) : "";
+  }
 
   // Ensure chart controls are initialized
   const yearSelect = document.getElementById("pain-view-year");
@@ -1236,12 +1240,11 @@ function renderPainChart() {
 
   canvas.width = width * dpr;
   canvas.height = height * dpr;
-  canvas.style.width = width + "px";
   canvas.style.height = height + "px";
   ctx.scale(dpr, dpr);
 
-  const padding = { top: 20, right: 20, bottom: 40, left: 20 };
-  const chartWidth = width - padding.left - padding.right;
+  const padding = { top: 25, right: 0, bottom: 40, left: 0 };
+  const chartWidth = width; // Fill container fully
   const chartHeight = height - padding.top - padding.bottom;
 
   // Clear canvas
@@ -1261,13 +1264,7 @@ function renderPainChart() {
     ? getPainDataYear(selectedYear)
     : getPainDataMonth(selectedYear, parseInt(selectedMonthValue));
 
-  if (data.length === 0) {
-    ctx.fillStyle = "#666";
-    ctx.font = "14px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText(t("no_data_yet"), width / 2, height / 2);
-    return;
-  }
+
 
   // Draw grid lines
   ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
@@ -1681,6 +1678,20 @@ function renderCalendar() {
     1
   ).toLocaleString(getLanguage(), { month: "long", year: "numeric" });
 
+  // Generate localized weekday headers
+  const weekdaysEl = document.getElementById("cal-weekdays");
+  if (weekdaysEl) {
+    weekdaysEl.innerHTML = "";
+    const formatter = new Intl.DateTimeFormat(getLanguage(), { weekday: "short" });
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(2023, 0, i + 1); // Jan 1 2023 is Sunday
+      const el = document.createElement("div");
+      el.className = "cal-weekday";
+      el.textContent = formatter.format(d);
+      weekdaysEl.appendChild(el);
+    }
+  }
+
   grid.innerHTML = "";
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -1750,6 +1761,12 @@ function closeLogPanel() {
     logModal.classList.remove("visible");
   }
 
+  // Re-enable calendar nav buttons
+  const prevBtn = document.getElementById("cal-prev");
+  const nextBtn = document.getElementById("cal-next");
+  if (prevBtn) prevBtn.classList.remove("nav-disabled");
+  if (nextBtn) nextBtn.classList.remove("nav-disabled");
+
   // Return focus to the calendar date that was selected (accessibility standard)
   const previousDate = selectedDate;
   selectedDate = null;
@@ -1775,6 +1792,12 @@ function selectDay(dateStr) {
   renderCalendar();
   const modal = document.getElementById("log-modal-overlay");
   modal.classList.add("visible");
+
+  // Disable calendar nav buttons while log panel is open
+  const prevBtn = document.getElementById("cal-prev");
+  const nextBtn = document.getElementById("cal-next");
+  if (prevBtn) prevBtn.classList.add("nav-disabled");
+  if (nextBtn) nextBtn.classList.add("nav-disabled");
   const d = fromISO(dateStr);
   document.getElementById("log-panel-date").textContent = d.toLocaleDateString(
     "default",
@@ -1809,9 +1832,6 @@ function selectDay(dateStr) {
   noteEl.value = (log.note || "").slice(0, 500);
   updateNoteCount();
 
-  // Update period marker button visuals
-  updatePeriodButtonVisuals();
-
   // Move focus into modal immediately (accessibility standard for modal dialogs)
   setTimeout(() => {
     const firstButton = document.getElementById("log-flow");
@@ -1845,7 +1865,6 @@ async function saveLog() {
   await save();
 
   renderCalendar();
-  document.getElementById("log-modal-overlay").classList.remove("visible");
   updateStatusCard();
   updateInsights();
   if (navigator.vibrate) navigator.vibrate(40);
@@ -1926,6 +1945,7 @@ async function applySettings() {
       renderCalendar();
       updateInsights();
       switchTab("calendar");
+      showToast(t("settings_saved_toast"));
     },
   });
 }
@@ -2481,8 +2501,9 @@ async function init() {
       "serviceWorker" in navigator &&
       (location.protocol === "http:" || location.protocol === "https:")
     ) {
+      const swUrl = `/period-tracker/service-worker.js?v=${new Date().getTime()}`;
       navigator.serviceWorker
-        .register("/period-tracker/service-worker.js")
+        .register(swUrl)
         .then((reg) => {
           console.log("Service Worker registered:", reg);
         })
@@ -2598,8 +2619,43 @@ function switchInsightTab(tabId) {
   });
 }
 
+function switchSettingsTab(tabId) {
+  const tabs = ['cycle', 'security'];
+  tabs.forEach(tab => {
+    const btn = document.getElementById('tab-btn-settings-' + tab);
+    const content = document.getElementById('settings-tab-' + tab);
+    if (!btn || !content) return;
+    
+    if (tab === tabId) {
+      btn.classList.add('active');
+      content.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+      content.classList.remove('active');
+    }
+  });
+}
+
+function switchAboutTab(tabId) {
+  const tabs = ['developer', 'privacy', 'disclaimer'];
+  tabs.forEach(tab => {
+    const btn = document.getElementById(`tab-btn-about-${tab}`);
+    const content = document.getElementById(`about-tab-${tab}`);
+    if (!btn || !content) return;
+    if (tab === tabId) {
+      btn.classList.add('active');
+      content.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+      content.classList.remove('active');
+    }
+  });
+}
+
 // Expose functions to window for HTML onclick handlers
 window.switchInsightTab = switchInsightTab;
+window.switchSettingsTab = switchSettingsTab;
+window.switchAboutTab = switchAboutTab;
 window.pinInput = pinInput;
 window.pinDelete = pinDelete;
 window.forgotPinFlow = forgotPinFlow;
@@ -2611,10 +2667,10 @@ window.closeLogPanel = closeLogPanel;
 window.showFlowModal = showFlowModal;
 window.showPainModal = showPainModal;
 window.showMoodModal = showMoodModal;
-window.togglePeriodStart = togglePeriodStart;
-window.togglePeriodEnd = togglePeriodEnd;
 window.saveLog = saveLog;
 window.deleteLog = deleteLog;
+window.resetLogWithConfirm = resetLogWithConfirm;
+window.scheduleAutoSaveNote = scheduleAutoSaveNote;
 window.downloadChart = downloadChart;
 window.setChartFilter = setChartFilter;
 window.updatePainChart = updatePainChart;

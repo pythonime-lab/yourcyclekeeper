@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="google-site-verification" content="ymbneWMVr53VCTfZ4IzJmM1MyZjg_Ur37TP0ndrXnYw" />
     <title>Your Cycle Keeper — Free Private Period & Cycle Tracker</title>
     <meta
       name="description"
@@ -29,30 +30,30 @@
       rel="icon"
       type="image/png"
       sizes="16x16"
-      href="icons/favicon-16x16.png"
+      href="icons/favicon-16x16.png?v=202603141312"
     />
     <link
       rel="icon"
       type="image/png"
       sizes="32x32"
-      href="icons/favicon-32x32.png"
+      href="icons/favicon-32x32.png?v=202603141312"
     />
     <link
       rel="icon"
       type="image/png"
       sizes="48x48"
-      href="icons/favicon-48x48.png"
+      href="icons/favicon-48x48.png?v=202603141312"
     />
     <link
       rel="icon"
       type="image/png"
       sizes="96x96"
-      href="icons/favicon-96x96.png"
+      href="icons/favicon-96x96.png?v=202603141312"
     />
     <link
       rel="apple-touch-icon"
       sizes="180x180"
-      href="icons/favicon-180x180.png"
+      href="icons/favicon-180x180.png?v=202603141312"
     />
     <meta name="theme-color" content="#120818" />
 
@@ -63,6 +64,56 @@
       property="og:image"
       content="https://yourcyclekeeper.web.app/icons/favicon-512x512.png"
     />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Your Cycle Keeper",
+        "operatingSystem": "Web",
+        "applicationCategory": "HealthApplication",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "description": "A free, private, AES-256 encrypted period and cycle tracker that works entirely in your browser. No accounts, no data collection, and no ads.",
+        "softwareVersion": "1.0",
+        "featureList": "AES-256 Encryption, Offline Support, PWA Support, Period Prediction, Symptom Tracking",
+        "screenshot": "https://yourcyclekeeper.web.app/icons/favicon-512x512.png"
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Is my data really private?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Your Cycle Keeper has no server, no backend, and no analytics. Your data is encrypted with your PIN using AES-256-GCM via the browser's Web Crypto API and stored only on your device."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How accurate are the predictions?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Predictions are based on the Calendar Rhythm Method using your history. They become more accurate as you log more cycles. It is an estimation tool, not a contraceptive."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is it really free forever?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Your Cycle Keeper is open-source software under the GPL v3 License. There is no premium tier, no subscription, and no ads — ever."
+            }
+          }
+        ]
+      }
+    </script>
 
     <style>
       @font-face {
@@ -683,15 +734,20 @@
         text-align: center;
         padding: 8rem 5vw;
       }
-      .cta-section img.cta-bg {
+      .cta-bg-wrapper {
         position: absolute;
         inset: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        object-position: center;
+        display: flex;
+        justify-content: center;
         z-index: 0;
-        background: var(--bg);
+        opacity: 0.6;
+        pointer-events: none;
+      }
+      .cta-bg-wrapper img {
+        height: 100%;
+        width: auto;
+        object-fit: contain;
+        flex-shrink: 0;
       }
       .cta-overlay {
         position: absolute;
@@ -851,8 +907,6 @@
         >
         <select id="landing-lang" class="nav-lang">
           <option value="en">EN</option>
-          <option value="ru">RU</option>
-          <option value="es">ES</option>
         </select>
       </div>
     </nav>
@@ -1367,12 +1421,11 @@
 
       <!-- CTA -->
       <section class="cta-section">
-        <img
-          class="cta-bg"
-          src="icons/yourcyclekeeper_background.png"
-          alt="Hearts and roses border"
-          loading="lazy"
-        />
+        <div class="cta-bg-wrapper">
+          <img src="icons/yourcyclekeeper_background.png" alt="" />
+          <img src="icons/yourcyclekeeper_background.png" alt="" />
+          <img src="icons/yourcyclekeeper_background.png" alt="" />
+        </div>
         <div class="cta-overlay"></div>
         <div class="cta-inner">
           <h2 data-i18n-html="cta_h2">
@@ -1416,7 +1469,7 @@
     <script>
       (function () {
         const LANG_KEY = "yck_lang";
-        const SUPPORTED = ["en", "ru", "es"];
+        const SUPPORTED = ["en"];
 
         const LOCALES = {
           en: {
